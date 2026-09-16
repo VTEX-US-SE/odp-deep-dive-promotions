@@ -104,6 +104,7 @@
   .badge::before{content:""; width:6px; height:6px; border-radius:50%; background:currentColor;}
 
   .content-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:28px; align-items:start;}
+  .content-grid.no-test{grid-template-columns:1fr;}
   @media (max-width:900px){ .content-grid{grid-template-columns:1fr;} }
 
   .text-col{display:flex; flex-direction:column; gap:20px;}
@@ -135,6 +136,9 @@
   .cart-btn{display:inline-flex; align-items:center; gap:7px; background:var(--pink); color:#fff !important; font-weight:600; font-size:13px; padding:10px 16px; border-radius:10px; text-decoration:none !important;}
   .cart-btn:hover{opacity:.9;}
   .test-open-note{font-size:13.5px; line-height:1.62; color:var(--slate); margin:0;}
+  .test-case{padding-top:18px; margin-top:18px; border-top:1px solid var(--line);}
+  .test-case:first-of-type{padding-top:0; margin-top:0; border-top:0;}
+  .test-case h4{font-size:14px; margin:0 0 10px;}
   .media-caption{font-size:12px; color:var(--slate); line-height:1.55; padding:0 2px;}
 </style>
 </head>
@@ -180,7 +184,7 @@
     bogo: ["Buy One Get One promotions", "https://help.vtex.com/en/docs/tutorials/buy-one-get-one"],
     buyTogether: ["Creating a Buy Together promotion", "https://help.vtex.com/en/docs/tutorials/buy-together"],
     progressive: ["Progressive Discount promotions", "https://help.vtex.com/en/docs/tutorials/progressive-discount"],
-    competition: ["Promotion competition and combination", "https://help.vtex.com/en/docs/tutorials/how-promotion-competition-works"],
+    competition: ["Promotion competition and combination", "https://help.vtex.com/docs/tutorials/how-promotion-competition-works"],
     pricing: ["Pricing overview", "https://developers.vtex.com/docs/guides/pricing-overview"],
     priceTableBenefit: ["Creating a promotion using a price table", "https://help.vtex.com/en/docs/tutorials/how-to-create-a-benefit-using-price-table"],
     userPriceTables: ["Configuring price tables for specific users", "https://help.vtex.com/en/docs/tutorials/setting-up-price-tables-for-specific-users"],
@@ -300,11 +304,10 @@
              "Expected result: the first 10 units should be priced at US$39.99 each; the 11th unit should stay at the regular price."
            ],
            cart:[{label:"Add 11&times; SKU 580039", url:cart([{id:580039,qty:11}])}]}],
-        ["Buy More, Save More tiered threshold","custom",
+        ["Buy More, Save More tiered threshold","native",
           "ODP wants shoppers who spend more to save proportionally more &mdash; spend $150 and save $20, spend $300 and save $50, spend $500 or more and save $75. It's a classic tiered incentive to grow basket size; ODP also called out wanting an item-count version of the same idea (&ldquo;Buy More Save Binders: 1&ndash;5 units 20% off, 6&ndash;10 units 25% off, 11+ units 30% off&rdquo;).",
-          "Each spend band is currently built as its own separate Regular promotion with a floor and ceiling on the cart total (totalValueMode=AllItems) and a nominal cart-level discount, all sharing one coupon code. The three bands are non-cumulative, so only the band matching the current cart total applies. This is also where the platform's current limitation shows up: because each band is its own promotion, VTEX can't yet automatically pick &ldquo;the best tier up to what's in the cart&rdquo; the way a single unified rule would &mdash; the cart's subtotal has to land inside the right band's range for its matching coupon to fire.",
+          "This is supported natively with separate Regular promotions for each spend band, each configured with a cart-total floor and ceiling and a nominal cart-level discount. The bands share one coupon code and are non-cumulative, so the promotion matching the current subtotal applies the appropriate $20, $50, or $75 savings.",
           {status:"tested", vtexName:"[Assessment] R04&ndash;R06 Spend 150/300/500 Save 20/50/75", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/6a57d7de-79ff-44b0-aa36-0fa37245e9ce",
-           caution:"Because each band is a separate promotion tied to a dollar range rather than a fixed set of SKUs, there's no single pre-built cart that reliably lands in one band &mdash; build the cart by hand and watch the subtotal.",
            steps:[
              "Use one cart per spend band, and use the same coupon code (<b>assess-bmsm</b>) in every cart.",
              "Add enough of SKU 925382 (paper), or a mix of catalog items, to land the cart's subtotal inside the target band, not the next one: US$150&ndash;299.99 for the first tier, US$300&ndash;499.99 for the second, US$500+ for the third.",
@@ -356,9 +359,9 @@
            ],
            cart:[{label:"Add SKU 925382", url:cart([{id:925382,qty:1}])}]}],
         ["Best price logic","native",
-          "When more than one promotion could technically apply to the same cart, ODP needs confidence that the shopper always walks away with the single best outcome, rather than staff having to manually sequence which discount &ldquo;wins.&rdquo;",
-          "VTEX's promotion calculator evaluates every promotion the shopper is eligible for and automatically applies whichever single combination produces the lowest final price, respecting each promotion's own cumulative or non-cumulative setting. No manual prioritization step is required from merchandising.",
-          {status:"open", note:"No single assessment promotion isolates this on its own &mdash; it's demonstrated implicitly whenever two non-cumulative promotions (most of this batch) compete for the same cart, since only the better one should apply. Worth a dedicated regression test once more promotions are live at the same time."}],
+          "When multiple eligible promotions affect the same item and have the same discount type, VTEX runs promotion competition to determine the outcome that provides the greatest benefit to the shopper. Promotions of different effect types, or promotions that affect different products, do not compete and can be combined automatically.",
+          "VTEX applies promotions in a predefined order by effect type: progressive discounts first; then percentage and fixed-amount price discounts; bundles and maximum unit prices; shipping discounts; gifts; formulas; surcharges; and reward amounts. Within the same type, promotions are ordered by discount value, prioritizing the greatest discount. Non-combinable promotions compete under the account's competition strategy (scenario-based by default), while eligible combinable promotions are applied afterward to the already-discounted amount.",
+          {hide:true}],
         ["Bundle discounts (single basket &amp; group)","custom",
           "Bundling &mdash; discounting a group of items purchased together, whether within one basket or across a shopper's broader purchase &mdash; is a mechanic ODP currently runs through its in-store systems for retail locations.",
           "ODP's blueprint marks this Retail Only: the existing in-store pricing system (IPS) continues to own bundling end-to-end, and no VTEX promotions integration is planned for this mechanic at this time.",
@@ -383,7 +386,23 @@
         ["Campaign-code segment targeting","native",
           "Marketing frequently wants to track and reward shoppers who arrive through a specific campaign &mdash; an email blast, a paid ad, a partner link &mdash; by tying a price list or discount to that campaign's tracking code.",
           "Both Campaign and Regular promotions natively support a UTM Source/Campaign condition, so a price list or discount can be scoped to only apply when the shopper's session carries a matching campaign code.",
-          {status:"open", note:"Demonstrated across nearly every promotion under Full Promotional Mechanics Engine (Requirement #1) via a UTM Source/Campaign condition &mdash; see C02&ndash;C06 or R01&ndash;R09 for a concrete walkthrough."}]
+          {status:"tested", cases:[
+            {title:"Test case 1 &mdash; Campaign promotion (C02)", vtexName:"[Assessment] C02 Buy X Get Y 20 Percent Off", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/c35df4b0-cb4a-4377-a531-2d3625f8e82e",
+             steps:[
+               "Click <b>Add to Cart</b> to load SKU 925382 (paper, item X) and SKU 3919316 (ink, item Y) together.",
+               "Set the checkout profile to <b>assessment.c02@officedepot.example</b>.",
+               "Expected result: the ink should show 20% off; the paper stays at list price, and only one unit of ink receives the discount."
+             ],
+             cart:[{label:"Add SKU 925382 + 3919316", url:cart([{id:925382,qty:1},{id:3919316,qty:1}])}]},
+            {title:"Test case 2 &mdash; Regular promotion (R01)", vtexName:"[Assessment] R01 Selected SKU 20 Percent Off", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/c268e320-6476-4cbd-b672-4647fa9a7187",
+             steps:[
+               "Click <b>Add to Cart</b> to load SKU 172791 (Composition Book).",
+               "Apply coupon code <b>assess-r01</b> in the cart.",
+               "Expected result: the price should drop 20%, from about $2.09 to roughly $1.67.",
+               "Negative check: remove the coupon and confirm the price returns to list."
+             ],
+             cart:[{label:"Add SKU 172791", url:cart([{id:172791,qty:1}])}]}
+          ]}]
       ]
     },
     { n:3, title:"Coupon &amp; Promo Code Management", flag:"native",
@@ -399,9 +418,9 @@
              "Expected result: the book should show 20% off."
            ],
            cart:[{label:"Add SKU 172791", url:cart([{id:172791,qty:1}])}]}],
-        ["Serialized / customer-specific codes","custom",
+        ["Serialized / customer-specific codes","native",
           "For more targeted, one-time offers &mdash; a birthday discount addressed to a specific customer by name, for example &mdash; ODP needs a code that's tied to one shopper and can't be reused or shared around.",
-          "Built the same way as a vanity code, but the underlying promotion is configured with a usage limit of one redemption per customer, so a second attempt with the same code fails. Generating large volumes of unique serialized codes happens in ODP's own systems rather than inside VTEX's pricing engine; VTEX's role is to validate and enforce the usage limit once a code is presented.",
+          "This is supported natively. A single promotion can have multiple unique customer-specific coupon codes, with each code configured for one-time use. VTEX validates the code when it is presented and prevents it from being redeemed again.",
           {status:"tested", vtexName:"[Assessment] Q06 Serialized Coupon", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/54bbf5b4-79f9-42d1-8110-24f54c111e04",
            steps:[
              "Click <b>Add to Cart</b> to load SKU 3919316, using an identified (logged-in) customer profile.",
@@ -412,12 +431,18 @@
            cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}],
         ["Auto-applied promotions","native",
           "Not every discount should require the shopper to do anything &mdash; instant savings, clearance pricing, and campaign-triggered offers are meant to apply the moment a qualifying item hits the cart, with no code to remember or type.",
-          "Campaign, Regular (when not coupon-gated), and Price Table promotions all evaluate automatically against the cart's contents and the shopper's profile &mdash; no code entry is part of the condition, so the discount simply appears once the shopper qualifies.",
-          {status:"open", note:"Any Campaign or Price Table promotion in this batch applies with no code &mdash; see Buy 1 Get 1 Free (C01) or Clearance Pricing (P01) under Requirement #1 for a representative walkthrough."}],
+          "This is the platform's default behavior: eligible Campaign, Regular (when not coupon-gated), and Price Table promotions are evaluated automatically against the cart and customer profile. VTEX prioritizes the promotion outcome that is best for the customer, and the discount appears as soon as the shopper qualifies.",
+          {hide:true}],
         ["Manually applied codes","native",
           "The counterpart to auto-applied promotions: some discounts should stay dormant until the shopper actively enters a code they received through a targeted channel, keeping the offer from being visible to every visitor.",
           "The promotion's condition includes a coupon requirement; VTEX validates whatever the shopper types against the configured code, its UTM Source/Campaign, and any usage-limit conditions before applying the discount.",
-          {status:"open", note:"See Selected SKU % off (R01) under Requirement #1 for a representative coupon-entry walkthrough."}],
+          {status:"tested", vtexName:"[Assessment] Q05 Vanity Coupon", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/daa27f1a-3466-42f1-a76c-5ffd52c96667",
+           steps:[
+             "Click <b>Add to Cart</b> to load SKU 172791.",
+             "Apply coupon code <b>assess-spend50</b> (a vanity code &mdash; not an actual $50 spend rule).",
+             "Expected result: the book should show 20% off."
+           ],
+           cart:[{label:"Add SKU 172791", url:cart([{id:172791,qty:1}])}]}],
         ["Global coupon &mdash; % off","native",
           "A sitewide &ldquo;spend and save&rdquo; coupon &mdash; ODP's own phrasing was &ldquo;20% off your qualifying purchase&rdquo; &mdash; meant to reward a shopper's overall basket once it crosses a spend floor, while carving out categories like Services that shouldn't be discounted this way.",
           "A coupon-gated promotion with a minimum-spend condition across the qualifying catalog and a percentage discount applied to the qualifying items only; excluded categories are configured with categoriesAreInclusive set to false so they never receive the discount even in the same cart.",
@@ -460,27 +485,32 @@
            cart:[{label:"Add SKU 9999060", url:cart([{id:9999060,qty:1}])}]}],
         ["Stackability rules","native",
           "ODP needs control over which discounts are allowed to combine on the same cart &mdash; some promotions, like a loyalty marker, should always be able to stack alongside another active discount, while most everyday promotions should be exclusive so shoppers can't chain multiple codes into an unintended compounded discount.",
-          "Every promotion carries a native cumulative flag, plus discount caps such as a maximum unit price discount or a total value floor and ceiling that further control how far a stacked combination can go. Most of ODP's assessment promotions are configured non-cumulative by design; the two exceptions that need to coexist with other discounts &mdash; the year-one Business Select offer and the TrueLoyal marker &mdash; are explicitly set to cumulative=true.",
-          {status:"open", note:"Demonstrated by contrast across the batch: most promotions are non-cumulative (C01, R01&ndash;R09) so only one fires per cart, while Service Depot Dollars and the TrueLoyal marker (L01) are cumulative=true and stack with other active discounts."}],
+          "Every promotion has a native combinability setting. Eligible combinable promotions are always applied and follow VTEX's predefined ordering by effect type and discount value; they apply to the amount already discounted by the winning non-combinable promotion. Non-combinable promotions of the same discount type that affect a common item compete, and VTEX selects the scenario that provides the greatest benefit to the customer.",
+          {hide:true}],
         ["Coupon limits (chain, customer, qty, geo)","native",
           "Beyond simply having a code, ODP needs to control how far that code can be used &mdash; a limited number of total redemptions, a cap per customer, a maximum quantity of items it can affect, or even a restriction to certain ZIP codes for a regional campaign.",
           "VTEX exposes these as native fields on every promotion: maxUsage (total redemptions), maxUsagePerClient (per-customer cap), maxNumberOfAffectedItems (quantity cap), and zipCodeRanges (geographic restriction) &mdash; all configurable without any custom development.",
-          {status:"open", note:"See Quantity-Limited Sale Price (R03, maxNumberOfAffectedItems=10, Requirement #1) and Serialized Coupon (Q06, maxUsage=1 / maxUsagePerClient=1, above) for concrete limit configurations already validated in this batch."}],
-        ["TrueLoyal coupon identifier","custom",
-          "TrueLoyal, ODP's loyalty platform, runs entirely outside VTEX &mdash; but when a shopper redeems a loyalty-specific code at checkout, that redemption still needs to be visible to TrueLoyal so it can assign the right reward, even though no money should change hands on the VTEX side.",
-          "Modeled as a Regular promotion whose discount formula evaluates to zero (discountExpression: total * 0), tied to its own UTM source, campaign, and coupon code. The order and orderForm still record this promotion's ID, which is what lets TrueLoyal identify that a loyalty coupon was used &mdash; the promotion is deliberately cumulative so it can sit alongside whatever other discount is actually being applied.",
-          {status:"tested", vtexName:"[Assessment] L01 TrueLoyal Coupon Marker", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/3d0bfc7b-2e75-4b91-b9e9-4f0b794a86e9",
-           steps:[
-             "Click <b>Add to Cart</b> to load any qualifying SKU (172791 works).",
-             "Apply coupon code <b>assess-loyalty</b>.",
-             "Expected result: the total should not change &mdash; this promotion carries zero monetary value. Check the order or orderForm data to confirm the promotion ID is still listed, which is what TrueLoyal reads to assign the reward.",
-             "It's fine for this to coexist with another active discount on the same cart, since it's configured as cumulative."
-           ],
-           cart:[{label:"Add SKU 172791", url:cart([{id:172791,qty:1}])}]}],
+          {status:"tested", cases:[
+            {title:"Test case 1 &mdash; Quantity limit (R03)", vtexName:"[Assessment] R03 Item at Fixed Price Limit 10", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/fa846fe8-b6ca-4c7d-bd12-532ac08e27bb",
+             steps:[
+               "Click <b>Add to Cart</b> to load 11 units of SKU 580039 (SKILCRAFT calculator).",
+               "Apply coupon code <b>assess-r03</b>.",
+               "Expected result: the first 10 units should be priced at US$39.99 each; the 11th unit should stay at the regular price."
+             ],
+             cart:[{label:"Add 11&times; SKU 580039", url:cart([{id:580039,qty:11}])}]},
+            {title:"Test case 2 &mdash; One-time customer limit (Q06)", vtexName:"[Assessment] Q06 Serialized Coupon", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/54bbf5b4-79f9-42d1-8110-24f54c111e04",
+             steps:[
+               "Click <b>Add to Cart</b> to load SKU 3919316, using an identified customer profile.",
+               "Apply coupon code <b>assess-bday-0001</b>.",
+               "Expected result: the ink should receive 20% off.",
+               "Negative check: try the same code again in a second cart and confirm it fails because maxUsage and maxUsagePerClient are both 1."
+             ],
+             cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}
+          ]}],
         ["Guest / POS checkout redemption","custom",
           "At in-store POS, a shopper checking out as a guest doesn't present any identifying information, which raises the question of how a code meant to be used once per customer can be enforced when there's no customer identity to check it against.",
-          "This remains an open item: without an identified profile, a per-customer usage limit can only be enforced by the uniqueness of the code string itself, and that gap hasn't been resolved for ODP's POS flow yet.",
-          {status:"open", note:"Called out during Serialized Coupon testing (Q06 above): guest/POS identity isn't guaranteed. No dedicated POS test exists yet &mdash; unresolved for ODP today."}]
+          "There are two integration options. ODP can integrate the POS with VTEX to capture customer information in real time and ask VTEX to validate promotion availability and redemption limits, or it can use an external promotion engine to perform the identity, eligibility, and redemption validation before completing the sale.",
+          {hide:true}]
       ]
     },
     { n:4, title:"Loyalty &amp; Membership Pricing", flag:"custom",
@@ -524,7 +554,7 @@
         ["BLP / offer stacking logic","native",
           "Loyalty offers often need to combine with whatever else is already discounting the cart &mdash; a member price alongside a sitewide sale, for instance &mdash; rather than being mutually exclusive with everything else.",
           "Uses the same native cumulative flag described under Coupon &amp; Promo Code Management, applied to loyalty-specific promotions so they can be explicitly allowed to combine with other active price tables and discounts.",
-          {status:"open", note:"See Stackability Rules under Requirement #3 &mdash; Service Depot Dollars and the TrueLoyal marker (L01) are both configured cumulative=true."}],
+          {status:"open", note:"See Stackability Rules under Requirement #3 and the cumulative Service Depot Dollars configuration."}],
         ["Service Depot Dollars (BizSelect year-1 offer)","native",
           "ODP's Business Select program originally ran on roughly one million individual, largely identical coupons for its first-year member offer &mdash; a volume that's operationally difficult to manage and update.",
           "Consolidated into a Regular promotion restricted to the tier=BS1 cluster, configured as cumulative so it stacks with other active discounts, and targeted through a dedicated UTM source and campaign rather than a unique coupon per customer. This single configuration approach is what allowed the roughly 1 million individual coupons to be reduced down to about 25&ndash;50 promotion configurations.",
@@ -704,7 +734,6 @@
     "Gift with purchase":[PUBLIC_DOCS.regular, PUBLIC_DOCS.bogo],
     "Stackability rules":[PUBLIC_DOCS.competition],
     "Coupon limits (chain, customer, qty, geo)":[PUBLIC_DOCS.coupons, PUBLIC_DOCS.regular],
-    "TrueLoyal coupon identifier":[PUBLIC_DOCS.couponsApi, PUBLIC_DOCS.promotionsApi],
     "Guest / POS checkout redemption":[PUBLIC_DOCS.coupons],
     "Member-exclusive pricing (Reward Member)":[PUBLIC_DOCS.userPriceTables],
     "Business Select (BizSelect) discount tiers":[PUBLIC_DOCS.pricing, PUBLIC_DOCS.userPriceTables],
@@ -772,12 +801,36 @@
   }
 
   function renderTestCard(test){
+    if (test && test.hide) return '';
     if (!test || test.status !== 'tested') {
       var note = (test && test.note) ? test.note : 'No assessment promotion covers this capability yet.';
       return '<div class="test-card is-open">' +
           '<span class="test-status open">Not yet tested</span>' +
           '<h3>How to test this</h3>' +
           '<p class="test-open-note">'+note+'</p>' +
+        '</div>';
+    }
+    if (test.cases && test.cases.length) {
+      var casesHtml = test.cases.map(function(testCase){
+        var caseSteps = (testCase.steps||[]).map(function(s){return '<li>'+s+'</li>';}).join('');
+        var caseCart = '';
+        if (testCase.cart && testCase.cart.length){
+          caseCart = '<div class="cart-btn-row">' + testCase.cart.map(function(c){
+            return '<a class="cart-btn" href="'+c.url+'" target="_blank" rel="noopener">&#128722; '+c.label+'</a>';
+          }).join('') + '</div>';
+        }
+        return '<section class="test-case">' +
+            '<h4>'+testCase.title+'</h4>' +
+            '<div class="test-name">'+testCase.vtexName+'</div>' +
+            '<div class="admin-link-row"><span class="label">Admin record</span><a class="admin-link-full" href="'+testCase.adminUrl+'" target="_blank" rel="noopener">'+testCase.adminUrl+'</a></div>' +
+            '<ol class="test-steps-list">'+caseSteps+'</ol>' +
+            caseCart +
+          '</section>';
+      }).join('');
+      return '<div class="test-card">' +
+          '<span class="test-status tested">Validated in officedepotdev</span>' +
+          '<h3>How to test this</h3>' +
+          casesHtml +
         '</div>';
     }
     var stepsHtml = (test.steps||[]).map(function(s){return '<li>'+s+'</li>';}).join('');
@@ -816,7 +869,7 @@
         '</div>' +
         '<span class="badge '+flag+'">'+(flag==='native' ? 'Native &mdash; no custom dev' : 'Custom build / integration') + '</span>' +
       '</div>' +
-      '<div class="content-grid">' +
+      '<div class="content-grid'+(test && test.hide ? ' no-test' : '')+'">' +
         '<div class="text-col">' +
           '<div class="block">' +
             '<h3>Business Scenario</h3>' +
@@ -831,9 +884,7 @@
             '<div class="doclinks">'+docsHtml+'</div>' +
           '</div>' +
         '</div>' +
-        '<div class="test-col">' +
-          renderTestCard(test) +
-        '</div>' +
+        (test && test.hide ? '' : '<div class="test-col">' + renderTestCard(test) + '</div>') +
       '</div>';
   }
 
