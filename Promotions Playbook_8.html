@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Promotions Playbook</title>
+
+<style>
+  :root{
+    --paper:#FFFFFF;
+    --paper-raised:#F3F4F6;
+    --ink:#17151C;
+    --ink-soft:#4A4650;
+    --slate:#6E6A78;
+    --pink:#F71963;
+    --pink-dim:#FDE4EC;
+    --pink-ink:#F71963;
+    --native:#1E9E5A;
+    --native-dim:#E3F5EA;
+    --custom:#B98900;
+    --custom-dim:#FBF1D2;
+    --line:#E4E5E8;
+    --line-strong:#D4D6DA;
+    --focus:#2C6BE8;
+    --shadow: 0 1px 2px rgba(23,21,28,.04), 0 8px 24px rgba(23,21,28,.06);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#15131B; --paper-raised:#1D1A24; --ink:#F3F0F5; --ink-soft:#C7C1D0; --slate:#A29CB0;
+      --pink:#FF3D7F; --pink-dim:#3A1526; --pink-ink:#FF6C9C;
+      --native:#4ADE80; --native-dim:#173322;
+      --custom:#F2C94C; --custom-dim:#3A2E0E;
+      --line:#2A2733; --line-strong:#38333F;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 28px rgba(0,0,0,.35);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#15131B; --paper-raised:#1D1A24; --ink:#F3F0F5; --ink-soft:#C7C1D0; --slate:#A29CB0;
+    --pink:#FF3D7F; --pink-dim:#3A1526; --pink-ink:#FF6C9C;
+    --native:#4ADE80; --native-dim:#173322;
+    --custom:#F2C94C; --custom-dim:#3A2E0E;
+    --line:#2A2733; --line-strong:#38333F;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 12px 28px rgba(0,0,0,.35);
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:"IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3{text-wrap:balance; margin:0;}
+  .mono{font-family:"IBM Plex Mono","SFMono-Regular",Consolas,monospace;}
+  a{color:var(--pink-ink); text-decoration:none;}
+  a:hover{text-decoration:underline;}
+  :focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:4px;}
+  button{font:inherit;}
+
+  /* ---------- Sticky header (top bar + requirement menu, as one block) ---------- */
+  .sticky-head{position:sticky; top:env(safe-area-inset-top,0px); z-index:40; background:var(--paper);}
+  .topbar{background:var(--paper);}
+  .topbar-inner{max-width:1180px; margin:0 auto; padding:18px 20px 14px; display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:14px;}
+  .brand{display:flex; align-items:center; gap:10px;}
+  .brand-mark{height:30px; padding:0 10px; border-radius:8px; background:var(--pink); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:700; font-size:13px; letter-spacing:.03em; white-space:nowrap; flex:none;}
+  .brand-text .eyebrow{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--slate); display:block;}
+  .brand-text h1{font-size:19px; font-weight:600;}
+  /* ---------- Level 1: requirement menu ---------- */
+  .l1-wrap{background:var(--paper); border-bottom:1px solid var(--line);}
+  .l1{max-width:1180px; margin:0 auto; padding:10px 20px; display:flex; flex-wrap:wrap; gap:8px;}
+  .l1-btn{flex:1 1 132px; display:flex; flex-direction:column; gap:2px; padding:8px 14px; border-radius:10px; border:1px solid var(--line); background:var(--paper-raised); cursor:pointer; text-align:left; color:var(--ink-soft); min-width:132px;}
+  .l1-btn .n{font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--slate);}
+  .l1-btn .t{font-size:12.5px; font-weight:600; line-height:1.25; color:var(--ink);}
+  .l1-btn[aria-pressed="true"]{background:var(--pink); border-color:var(--pink);}
+  .l1-btn[aria-pressed="true"] .n{color:rgba(255,255,255,.75);}
+  .l1-btn[aria-pressed="true"] .t{color:#fff;}
+  .l1-btn .flag{font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; margin-top:1px;}
+  .l1-btn .flag.native{color:var(--native);}
+  .l1-btn .flag.custom{color:var(--custom);}
+  .l1-btn[aria-pressed="true"] .flag{color:rgba(255,255,255,.85) !important;}
+
+  /* ---------- Level 2: capability submenu ---------- */
+  .l2-wrap{background:var(--paper-raised); border-bottom:1px solid var(--line);}
+  .l2-head{max-width:1180px; margin:0 auto; padding:16px 20px 0; display:flex; align-items:baseline; justify-content:space-between; gap:12px; flex-wrap:wrap;}
+  .l2-head h2{font-size:13px; text-transform:uppercase; letter-spacing:.05em; color:var(--slate);}
+  .l2-head a{font-size:12px; color:var(--pink);}
+  .l2{max-width:1180px; margin:0 auto; padding:10px 20px 16px; display:flex; flex-wrap:wrap; gap:8px;}
+  .l2-btn{
+    display:flex; align-items:center; gap:8px; padding:9px 13px; border-radius:999px;
+    border:1px solid var(--line); background:var(--paper); color:var(--ink); cursor:pointer; font-size:13px;
+  }
+  .l2-btn .dot{width:7px; height:7px; border-radius:50%; flex:none;}
+  .l2-btn .dot.native{background:var(--native);}
+  .l2-btn .dot.custom{background:var(--custom);}
+  .l2-btn[aria-pressed="true"]{background:var(--pink-dim); border-color:var(--pink); font-weight:600;}
+
+  /* ---------- Content panel ---------- */
+  main{max-width:1180px; margin:0 auto; padding:26px 20px 64px;}
+  .panel-head{display:flex; flex-wrap:wrap; gap:16px; justify-content:space-between; align-items:flex-start; padding-bottom:18px; border-bottom:1px solid var(--line); margin-bottom:22px;}
+  .panel-head .id{font-family:"IBM Plex Mono",monospace; color:var(--slate); font-size:13px;}
+  .panel-head h2{font-size:25px; font-weight:650; margin-top:4px; max-width:640px;}
+  .badge{display:inline-flex; align-items:center; gap:6px; padding:5px 11px; border-radius:999px; font-size:12px; font-weight:600; white-space:nowrap; border:1px solid transparent;}
+  .badge.native{background:var(--native-dim); color:var(--native); border-color:var(--native);}
+  .badge.custom{background:var(--custom-dim); color:var(--custom); border-color:var(--custom);}
+  .badge::before{content:""; width:6px; height:6px; border-radius:50%; background:currentColor;}
+
+  .content-grid{display:grid; grid-template-columns:1.05fr .95fr; gap:28px; align-items:start;}
+  @media (max-width:900px){ .content-grid{grid-template-columns:1fr;} }
+
+  .text-col{display:flex; flex-direction:column; gap:20px;}
+
+  .block h3{font-size:12.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--slate); margin-bottom:10px;}
+  .block p{font-size:15px; line-height:1.72; color:var(--ink); margin:0;}
+  .block.config p{color:var(--ink-soft);}
+
+  .doclink{font-size:15px; font-weight:600; color:var(--pink); word-break:break-word; display:inline-block;}
+  .doclink:hover{text-decoration:underline;}
+
+  /* ---------- How-to-test panel (right column) ---------- */
+  .test-col{position:sticky; top:calc(env(safe-area-inset-top,0px) + var(--head-h, 150px) + 16px); display:flex; flex-direction:column; gap:10px;}
+  .test-card{border-radius:16px; border:1px solid var(--line); background:var(--paper-raised); padding:22px; box-shadow:var(--shadow);}
+  .test-card.is-open{border:1.5px dashed var(--line-strong); box-shadow:none; background:var(--paper);}
+  .test-status{display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; margin-bottom:14px;}
+  .test-status.tested{background:var(--native-dim); color:var(--native);}
+  .test-status.open{background:var(--custom-dim); color:var(--custom);}
+  .test-card h3{font-size:12.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--slate); margin-bottom:10px;}
+  .test-name{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-soft); background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:6px 10px; display:inline-block; margin-bottom:12px; word-break:break-word;}
+  .admin-link-row{margin:0 0 16px;}
+  .admin-link-row .label{display:block; font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--slate); margin-bottom:4px;}
+  .admin-link-full{font-family:"IBM Plex Mono",monospace; font-size:12px; line-height:1.5; color:var(--pink-ink); word-break:break-all; display:inline-block;}
+  .test-caution{font-size:12.5px; line-height:1.55; color:var(--custom); background:var(--custom-dim); border-radius:8px; padding:9px 12px; margin:0 0 14px;}
+  .test-steps-list{margin:0 0 18px; padding-left:20px; display:flex; flex-direction:column; gap:9px;}
+  .test-steps-list li{font-size:14.5px; line-height:1.62; color:var(--ink);}
+  .cart-btn-row{display:flex; flex-wrap:wrap; gap:8px; margin-top:2px;}
+  .cart-btn{display:inline-flex; align-items:center; gap:7px; background:var(--pink); color:#fff !important; font-weight:600; font-size:13px; padding:10px 16px; border-radius:10px; text-decoration:none !important;}
+  .cart-btn:hover{opacity:.9;}
+  .test-open-note{font-size:13.5px; line-height:1.62; color:var(--slate); margin:0;}
+  .media-caption{font-size:12px; color:var(--slate); line-height:1.55; padding:0 2px;}
+</style>
+</head>
+<body>
+
+
+<div class="sticky-head" id="stickyHead">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-mark">VTEX</div>
+        <div class="brand-text">
+          <span class="eyebrow">VTEX + Office Depot &middot; Promotions Deep-Dive Session</span>
+          <h1>Promotions Playbook</h1>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="l1-wrap">
+    <div class="l1" id="l1bar" role="tablist" aria-label="Requirements"></div>
+  </div>
+</div>
+
+<div class="l2-wrap">
+  <div class="l2-head">
+    <h2 id="l2label">Capabilities</h2>
+  </div>
+  <div class="l2" id="l2bar" role="tablist" aria-label="Capabilities"></div>
+</div>
+
+<main id="panelHost"></main>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;650;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<script>
+(function(){
+  var DOC = "https://docs.google.com/document/d/1jHEyUhrigG4X62nH2C6L11hPssKzbVLhpnnUmkORa4Y/edit";
+  var CART_BASE = "https://officedepotdev.myvtex.com/checkout/cart/add?sc=2&redirect=true&";
+
+  function cart(items){
+    // items: [{id, qty}]
+    var parts = [];
+    items.forEach(function(it){
+      parts.push("sku="+it.id+"&qty="+it.qty+"&seller=1");
+    });
+    return CART_BASE + parts.join("&");
+  }
+
+  var TOPICS = [
+    { n:1, title:"Full Promotional Mechanics Engine", flag:"native",
+      doc:DOC, docNote:"ODP Promotions Blueprint &mdash; Campaign, Regular &amp; Price Table Promotion sections",
+      caps:[
+        ["Buy 1 Get 1 Free (same SKU)","native",
+          "Campaign promotions define the conditions under which a discount should trigger &mdash; most often a specific SKU sitting in the cart. A straightforward Buy-One-Get-One offer is a classic example: a shopper who adds a qualifying item receives a second, identical unit as a free gift, at no cost to them. This is the kind of promotion ODP would run on a hero product to drive basket size during a campaign window.",
+          "This is built as a VTEX Campaign promotion of type buyAndWin. The rule says: buy one unit of the SKU, get one more unit of that same SKU as a gift, capped at one gift per cart so the offer can't be stacked by adding extra units. Eligibility is gated by a campaign audience &mdash; in the assessment build, a specific customer email &mdash; so the discount only shows up for shoppers who match that audience, and disappears for anyone else. The promotion is configured as not cumulative, meaning it won't combine with any other active discount on the same cart.",
+          {status:"tested", vtexName:"[Assessment] C01 Buy 1 Get 1 Free Same SKU", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/c44729cc-aac3-4adf-80f9-cfeff8d7abd4",
+           steps:[
+             "Click <b>Add to Cart</b> below to open a fresh cart in officedepotdev already loaded with 2 units of SKU 172791 (Composition Book).",
+             "Log in, or set the checkout profile, to <b>assessment.c01@officedepot.example</b> &mdash; this is the only audience the promotion is gated to.",
+             "Expected result: one of the two units should show as a free gift, selling price US$0.",
+             "Negative check: repeat without that email and confirm the gift does not appear."
+           ],
+           cart:[{label:"Add 2&times; SKU 172791", url:cart([{id:172791,qty:2}])}]}],
+        ["Buy X Get Y at % off","native",
+          "This is the &ldquo;buy one thing, get a discount on another&rdquo; pattern from ODP's blueprint: buying select paper products (X) unlocks a percentage off a specific ink or toner SKU (Y). It lets merchandising pair a high-traffic item with a margin-friendly cross-sell, without changing the price of the X item itself.",
+          "Configured as a Campaign promotion where the audience condition requires the X SKU to be present in the cart. The reward &mdash; a percentage discount &mdash; is scoped narrowly to the Y SKU only, capped at one discounted unit per cart. Each Buy X Get Y campaign uses its own dedicated audience so similar-looking rules, like a dollar-off variant of the same pairing, don't compete with each other.",
+          {status:"tested", vtexName:"[Assessment] C02 Buy X Get Y 20 Percent Off", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/c35df4b0-cb4a-4377-a531-2d3625f8e82e",
+           steps:[
+             "Click <b>Add to Cart</b> to load SKU 925382 (paper, item X) and SKU 3919316 (ink, item Y) together.",
+             "Set the checkout profile to <b>assessment.c02@officedepot.example</b>.",
+             "Expected result: the ink should show 20% off; the paper stays at list price, and only one unit of ink receives the discount."
+           ],
+           cart:[{label:"Add SKU 925382 + 3919316", url:cart([{id:925382,qty:1},{id:3919316,qty:1}])}]}],
+        ["Buy X Get Y at $ off","native",
+          "The dollar-off sibling of the percentage mechanic above: buying select items (X) unlocks a flat dollar discount on a paired item (Y), useful when ODP wants to guarantee an exact savings amount rather than a variable percentage &mdash; a flat $5 off ink when a shopper buys paper, for example.",
+          "Same Campaign promotion structure as the percentage variant, but the reward is expressed as a nominal dollar amount rather than a percentage, still capped to a single affected unit of the Y SKU. It runs on its own dedicated audience, separate from the percentage-off version, so the two rules never conflict on the same cart.",
+          {status:"tested", vtexName:"[Assessment] C03 Buy X Get Y 5 Dollars Off", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/b14e4c88-d336-4499-a7a0-aa9d2eb55813",
+           steps:[
+             "Click <b>Add to Cart</b> to load SKU 925382 and SKU 3919316 together.",
+             "Set the checkout profile to <b>assessment.c03@officedepot.example</b>.",
+             "Expected result: the ink should receive US$5 off; the paper should not take this discount."
+           ],
+           cart:[{label:"Add SKU 925382 + 3919316", url:cart([{id:925382,qty:1},{id:3919316,qty:1}])}]}],
+        ["Spend threshold reward &mdash; % off","native",
+          "A &ldquo;spend and get rewarded&rdquo; mechanic: once a shopper's basket of qualifying items (Y) crosses a minimum dollar amount, they unlock a percentage discount on a different item (Z). ODP's own example was spending $100 on general supplies to get 20% off a case of paper &mdash; rewarding a larger office-supply basket rather than a single-item purchase.",
+          "Built as a Campaign promotion with a spend-floor condition: the audience only qualifies once the cart total for the named Y SKUs crosses the configured dollar amount. Where a broad category like &ldquo;Office Supplies&rdquo; doesn't reliably capture every descendant SKU, the assessment build lists the qualifying SKUs explicitly instead of relying on the parent category. The reward is a percentage off the Z SKU, capped to a single affected unit.",
+          {status:"tested", vtexName:"[Assessment] C04 Spend 100 Get Z 20 Percent Off", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/8e2dc812-e543-45ea-ad53-896270485d4b",
+           steps:[
+             "Click <b>Add to Cart</b> to load the qualifying spend bundle &mdash; SKUs 9999918, 9999916, and 2&times; 9999839 clear the $100 floor &mdash; plus SKU 925382, the reward item (Z).",
+             "Set the checkout profile to <b>assessment.c04@officedepot.example</b>.",
+             "Expected result: the paper (925382) should show 20% off.",
+             "Negative check: remove the qualifying bundle and keep only the paper &mdash; the campaign should not fire."
+           ],
+           cart:[{label:"Add qualifying bundle + paper", url:cart([{id:9999918,qty:1},{id:9999916,qty:1},{id:9999839,qty:2},{id:925382,qty:1}])}]}],
+        ["Spend threshold reward &mdash; $ off","native",
+          "The same spend-and-reward mechanic as above, but with a guaranteed dollar amount off instead of a percentage &mdash; for shoppers who spend $100 on qualifying supplies, get a flat $10 off a case of paper, for example.",
+          "Identical Campaign structure and spend-floor condition to the percentage variant, with the reward expressed as a nominal dollar discount on the Z SKU instead of a percentage.",
+          {status:"tested", vtexName:"[Assessment] C05 Spend 100 Get Z 10 Dollars Off", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/aee23f83-51a3-4686-bbae-c9a28f8ab7ce",
+           steps:[
+             "Click <b>Add to Cart</b> to load the same qualifying spend bundle as above.",
+             "Set the checkout profile to <b>assessment.c05@officedepot.example</b>.",
+             "Expected result: the paper (925382) should receive US$10 off."
+           ],
+           cart:[{label:"Add qualifying bundle + paper", url:cart([{id:9999918,qty:1},{id:9999916,qty:1},{id:9999839,qty:2},{id:925382,qty:1}])}]}],
+        ["Fixed price rewards","native",
+          "Instead of a discount off the regular price, this mechanic reprices the reward item to an exact promotional price once the spend threshold is met &mdash; ODP's example was spending $100 on supplies to get a case of paper for exactly $11.99, regardless of what it would normally cost.",
+          "Built as a Campaign promotion using maximumUnitPriceDiscount to cap the unit price of the Z SKU at the promotional amount, combined with a limit on how many units can receive that price (three, in the assessment build) and how many times a single customer can redeem it &mdash; so the fixed price can't be exploited by adding an unlimited quantity of the reward item.",
+          {status:"tested", vtexName:"[Assessment] C06 Spend 100 Get Z at 11.99", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/b03d6719-a325-45c0-8a09-e8df47de5e4d",
+           steps:[
+             "Click <b>Add to Cart</b> to load the qualifying spend bundle plus 4 units of paper (925382) &mdash; enough to test the promotion's 3-unit cap.",
+             "Set the checkout profile to <b>assessment.c06@officedepot.example</b>.",
+             "Expected result: up to 3 units of paper should be re-priced to US$11.99 each; the 4th unit should stay at the regular price."
+           ],
+           cart:[{label:"Add bundle + 4&times; paper", url:cart([{id:9999918,qty:1},{id:9999916,qty:1},{id:9999839,qty:2},{id:925382,qty:4}])}]}],
+        ["Selected SKU % off (coupon-gated)","native",
+          "Sometimes ODP doesn't want a discount to be broadly visible &mdash; it should only apply when a shopper enters a specific code, distributed through a targeted channel like an email campaign or a customer-service interaction. This gives merchandising a percentage-off lever they can hand to a specific segment without exposing it to every visitor.",
+          "A Regular promotion carrying a percentage discount on the chosen SKU, gated behind a coupon code tied to a matching UTM source and campaign. Without entering the code, the shopper sees the regular price; with it, the discount applies immediately. The promotion is not cumulative, so it won't stack with another active discount on the same item.",
+          {status:"tested", vtexName:"[Assessment] R01 Selected SKU 20 Percent Off", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/c268e320-6476-4cbd-b672-4647fa9a7187",
+           steps:[
+             "Click <b>Add to Cart</b> to load SKU 172791 (Composition Book).",
+             "Apply coupon code <b>assess-r01</b> in the cart.",
+             "Expected result: the price should drop 20%, from about $2.09 to roughly $1.67.",
+             "Negative check: remove the coupon and confirm the price returns to list."
+           ],
+           cart:[{label:"Add SKU 172791", url:cart([{id:172791,qty:1}])}]}],
+        ["Selected SKU $ off (coupon-gated)","native",
+          "The same targeted, code-gated approach as above, but guaranteeing an exact dollar amount off instead of a percentage &mdash; useful when ODP wants the savings message to be a round, easy-to-communicate number like &ldquo;$5 off.&rdquo;",
+          "Same Regular promotion mechanic as the percentage variant, with the reward expressed as a flat nominal dollar amount tied to its own dedicated coupon code.",
+          {status:"tested", vtexName:"[Assessment] R02 Selected SKU 5 Dollars Off", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/06d238c1-7409-48c4-825b-ab2fbc84f723",
+           steps:[
+             "Click <b>Add to Cart</b> to load SKU 3919316 (ink).",
+             "Apply coupon code <b>assess-r02</b>.",
+             "Expected result: the ink should receive US$5 off."
+           ],
+           cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}],
+        ["Quantity-limited sale price","native",
+          "This mechanic lets ODP advertise a sale price on a limited number of units &mdash; &ldquo;first 10 units at this price, regular price after that&rdquo; &mdash; common for doorbuster-style offers where the business wants to cap how many units go out at the promotional price without manually tracking inventory.",
+          "A Regular promotion (not the forThePriceOf type, which VTEX's validation rejects when the minimum quantity is lower than the quantity to affect) that fixes the unit price for up to a defined number of units via maximumUnitPriceDiscount and maxNumberOfAffectedItems. Any units beyond that cap automatically revert to the regular price within the same cart.",
+          {status:"tested", vtexName:"[Assessment] R03 Item at Fixed Price Limit 10", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/fa846fe8-b6ca-4c7d-bd12-532ac08e27bb",
+           steps:[
+             "Click <b>Add to Cart</b> to load 11 units of SKU 580039 (SKILCRAFT calculator) &mdash; enough to test the 10-unit cap.",
+             "Apply coupon code <b>assess-r03</b>.",
+             "Expected result: the first 10 units should be priced at US$39.99 each; the 11th unit should stay at the regular price."
+           ],
+           cart:[{label:"Add 11&times; SKU 580039", url:cart([{id:580039,qty:11}])}]}],
+        ["Buy More, Save More tiered threshold","custom",
+          "ODP wants shoppers who spend more to save proportionally more &mdash; spend $150 and save $20, spend $300 and save $50, spend $500 or more and save $75. It's a classic tiered incentive to grow basket size; ODP also called out wanting an item-count version of the same idea (&ldquo;Buy More Save Binders: 1&ndash;5 units 20% off, 6&ndash;10 units 25% off, 11+ units 30% off&rdquo;).",
+          "Each spend band is currently built as its own separate Regular promotion with a floor and ceiling on the cart total (totalValueMode=AllItems) and a nominal cart-level discount, all sharing one coupon code. The three bands are non-cumulative, so only the band matching the current cart total applies. This is also where the platform's current limitation shows up: because each band is its own promotion, VTEX can't yet automatically pick &ldquo;the best tier up to what's in the cart&rdquo; the way a single unified rule would &mdash; the cart's subtotal has to land inside the right band's range for its matching coupon to fire.",
+          {status:"tested", vtexName:"[Assessment] R04&ndash;R06 Spend 150/300/500 Save 20/50/75", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/6a57d7de-79ff-44b0-aa36-0fa37245e9ce",
+           caution:"Because each band is a separate promotion tied to a dollar range rather than a fixed set of SKUs, there's no single pre-built cart that reliably lands in one band &mdash; build the cart by hand and watch the subtotal.",
+           steps:[
+             "Use one cart per spend band, and use the same coupon code (<b>assess-bmsm</b>) in every cart.",
+             "Add enough of SKU 925382 (paper), or a mix of catalog items, to land the cart's subtotal inside the target band, not the next one: US$150&ndash;299.99 for the first tier, US$300&ndash;499.99 for the second, US$500+ for the third.",
+             "Expected result: the matching band's cart-level discount should apply &mdash; $20, $50, or $75 &mdash; and none of the three should apply below the $150 floor.",
+             "Admin references for each band: R04 (150&rarr;20), R05 (300&rarr;50), R06 (500&rarr;75) &mdash; see the full list under Requirement documentation."
+           ],
+           cart:[]}],
+        ["Progressive quantity discount","native",
+          "Distinct from the cart-total tiering above, this mechanic tiers the discount by how many units of one SKU the shopper buys &mdash; the more they buy, the deeper the per-unit discount, all within a single promotion rather than separate bands.",
+          "Built using VTEX's native progressive promotion type on a single SKU, with quantity break-points &mdash; in the assessment build, 1, 6, and 11 units &mdash; each mapped to its own percentage. As the shopper's quantity crosses a break-point, the higher discount tier applies automatically to the whole line.",
+          {status:"tested", vtexName:"[Assessment] R07 Progressive Quantity 20 25 30", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/9bd1eb6d-7c27-48cc-94d3-d91856f91fbe",
+           steps:[
+             "Use one of the three buttons below to load 1, 6, or 11 units of SKU 172791 into a fresh cart.",
+             "Apply coupon code <b>assess-r07</b>.",
+             "Expected result: 1 unit &rarr; 20% off, 6 units &rarr; 25% off, 11 units &rarr; 30% off &mdash; the tier should update automatically as quantity crosses each break-point."
+           ],
+           cart:[
+             {label:"Add 1&times; SKU 172791", url:cart([{id:172791,qty:1}])},
+             {label:"Add 6&times; SKU 172791", url:cart([{id:172791,qty:6}])},
+             {label:"Add 11&times; SKU 172791", url:cart([{id:172791,qty:11}])}
+           ]}],
+        ["Clearance markdown","native",
+          "For products ODP is phasing out or discontinuing, clearance pricing needs to show a clearly reduced price without touching the item's normal list price elsewhere in the catalog &mdash; ODP's own example was clearance laptops marked down to $299.",
+          "Implemented as a dedicated Clearance price table. ODP's pricing system (IPS) pushes the final marked-down price per SKU into that table, and VTEX serves it wherever the shopper's session is mapped to the clearance price table &mdash; the item's original list price is preserved for reference and displayed struck through.",
+          {status:"tested", vtexName:"[Assessment] P01 Clearance Pricing", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/814de66d-b359-4bf3-ae8e-d2f99d8ac53a",
+           steps:[
+             "Open a cart session mapped to the assessment-clearance price table / trade policy, then click <b>Add to Cart</b> to load SKU 9999060 (Dell laptop).",
+             "Expected result: the selling price should be US$299, while the list price still shows the original, higher laptop price."
+           ],
+           cart:[{label:"Add SKU 9999060", url:cart([{id:9999060,qty:1}])}]}],
+        ["First-time customer discounts","native",
+          "A welcome-style incentive aimed at converting a first-time visitor into a customer &mdash; 25% off their very first order after signing up with an email address, for example. It's meant to apply exactly once per shopper, not on every subsequent order.",
+          "A Regular promotion using the isFirstBuy condition, so VTEX itself determines eligibility based on purchase history rather than a manually maintained list. The assessment build disables &ldquo;optimistic&rdquo; first-buy matching, so a guest checkout with no purchase history behind it isn't treated as a first-time buyer just because the system has no record to check &mdash; the discount is reserved for genuinely new, identified customers.",
+          {status:"tested", vtexName:"[Assessment] R09 First Purchase 25 Percent", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/47cf00a8-f74c-407a-ba21-5574c385f73f",
+           steps:[
+             "Click <b>Add to Cart</b> to load SKU 172791, using an email address that has never placed an order before.",
+             "Apply coupon code <b>assess-r09</b>.",
+             "Expected result: the book should show 25% off.",
+             "Negative check: repeat checkout with the same identified customer, or as a guest with no purchase history &mdash; the discount should not re-apply."
+           ],
+           cart:[{label:"Add SKU 172791", url:cart([{id:172791,qty:1}])}]}],
+        ["% off / $ off (Instant Savings)","native",
+          "This is ODP's everyday markdown mechanic &mdash; &ldquo;20% off all office furniture&rdquo; or &ldquo;$50 off select printers&rdquo; &mdash; scoped to a customer segment, a set of products, or a collection, running for a defined window of time. It's the workhorse promotion type behind most sitewide and category-level sales.",
+          "Built as a Price Table promotion: IPS calculates and pushes the final discounted price per SKU into a dedicated price table, and VTEX serves that price to any shopper whose session maps to it. Because the original list price is retained alongside the discounted selling price, the storefront can show both &mdash; the crossed-out &ldquo;was&rdquo; price next to the current &ldquo;now&rdquo; price &mdash; for as long as the promotion window is active.",
+          {status:"tested", vtexName:"[Assessment] P04 Instant Savings Visible", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/f0883924-4b49-4538-9520-ad3822fe0500",
+           steps:[
+             "Open a cart session mapped to the assessment-instant price table, then click <b>Add to Cart</b> to load SKU 925382.",
+             "Expected result: the selling price should show as US$29.99 with a list price of US$35.62 visible alongside it on both the listing and product pages."
+           ],
+           cart:[{label:"Add SKU 925382", url:cart([{id:925382,qty:1}])}]}],
+        ["Best price logic","native",
+          "When more than one promotion could technically apply to the same cart, ODP needs confidence that the shopper always walks away with the single best outcome, rather than staff having to manually sequence which discount &ldquo;wins.&rdquo;",
+          "VTEX's promotion calculator evaluates every promotion the shopper is eligible for and automatically applies whichever single combination produces the lowest final price, respecting each promotion's own cumulative or non-cumulative setting. No manual prioritization step is required from merchandising.",
+          {status:"open", note:"No single assessment promotion isolates this on its own &mdash; it's demonstrated implicitly whenever two non-cumulative promotions (most of this batch) compete for the same cart, since only the better one should apply. Worth a dedicated regression test once more promotions are live at the same time."}],
+        ["Bundle discounts (single basket &amp; group)","custom",
+          "Bundling &mdash; discounting a group of items purchased together, whether within one basket or across a shopper's broader purchase &mdash; is a mechanic ODP currently runs through its in-store systems for retail locations.",
+          "ODP's blueprint marks this Retail Only: the existing in-store pricing system (IPS) continues to own bundling end-to-end, and no VTEX promotions integration is planned for this mechanic at this time.",
+          {status:"open", note:"Confirmed out of this assessment batch &mdash; listed under &ldquo;Not in this VTEX batch&rdquo; since it's Retail-only and owned by IPS. There is no VTEX promotion to test."}]
+      ]
+    },
+    { n:2, title:"Geographic &amp; Segment-Based Price Lists", flag:"native",
+      doc:DOC, docNote:"ODP Promotions Blueprint &mdash; Instant Savings (Zones) &amp; Price Table Promotion sections",
+      caps:[
+        ["Zone-based pricing (US / Puerto Rico / Hawaii)","native",
+          "ODP's instant-savings pricing isn't always uniform nationwide &mdash; a promotion might need to look different in the continental US versus Puerto Rico or Hawaii, where cost structures and market conditions differ.",
+          "Handled as a Price Table promotion scoped per zone, with each region mapped to its own price table via store and sales-channel restrictions. Testing on officedepotdev confirmed this routing happens at the trade-policy level &mdash; the shopper's assigned trade policy determines which zone's price table they see, rather than a separate promotion being evaluated per region.",
+          {status:"open", note:"No dedicated zone-switch test in this batch, but the MAP Instant Savings test (P05, see Requirement #8) confirms the routing in practice: US/PR/Hawaii differences are handled by trade-policy assignment, not by separate promotion configs."}],
+        ["State, district &amp; store-level pricing","native",
+          "Beyond broad zones, ODP may eventually want pricing that varies even more narrowly &mdash; by state, by district, or down to an individual store, the way many national retailers tune price by local market conditions.",
+          "The same Price Table plus Trade Policy mechanism used for zone-level pricing extends naturally to state, district, or store-level granularity &mdash; it's the identical underlying capability, just mapped to a finer-grained set of trade policies. Only the zone-level use case has been scoped and validated for ODP so far.",
+          {status:"open", note:"Not isolated in this assessment batch &mdash; only zone-level pricing (US/PR/Hawaii) has been validated so far."}],
+        ["Member/segment price lists (Reward Member, Business Select)","native",
+          "ODP runs multiple membership tiers &mdash; Rewards members and Business Select subscribers, for instance &mdash; each of whom should see a different, better price on eligible products without needing a coupon code.",
+          "Configured as Price Table promotions restricted by a cluster condition tied to the tier value stored on the shopper's profile (for example, tier contains rewardmember). The moment a shopper's profile carries the matching tier, VTEX automatically serves them that price table.",
+          {status:"open", note:"These are the same Price Table promotions covered under Loyalty &amp; Membership Pricing (Requirement #4) &mdash; see Member-Exclusive Pricing and Business Select Pricing there for the full, tested walkthrough."}],
+        ["Campaign-code segment targeting","native",
+          "Marketing frequently wants to track and reward shoppers who arrive through a specific campaign &mdash; an email blast, a paid ad, a partner link &mdash; by tying a price list or discount to that campaign's tracking code.",
+          "Both Campaign and Regular promotions natively support a UTM Source/Campaign condition, so a price list or discount can be scoped to only apply when the shopper's session carries a matching campaign code.",
+          {status:"open", note:"Demonstrated across nearly every promotion under Full Promotional Mechanics Engine (Requirement #1) via a UTM Source/Campaign condition &mdash; see C02&ndash;C06 or R01&ndash;R09 for a concrete walkthrough."}]
+      ]
+    },
+    { n:3, title:"Coupon &amp; Promo Code Management", flag:"native",
+      doc:DOC, docNote:"ODP Promotions Blueprint &mdash; Coupons &amp; TrueLoyal sections",
+      caps:[
+        ["Vanity codes","native",
+          "A short, memorable, human-readable code &mdash; something like SPEND50 &mdash; that ODP can print on a flyer, read aloud, or feature in an email, and that a shopper types in at checkout to unlock a discount.",
+          "Any promotion type can carry a coupon code paired with a matching UTM Source/Campaign condition. In the assessment build this is a 14-digit alphanumeric vanity code; entering it at checkout satisfies the promotion's condition and the discount applies immediately.",
+          {status:"tested", vtexName:"[Assessment] Q05 Vanity Coupon", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/daa27f1a-3466-42f1-a76c-5ffd52c96667",
+           steps:[
+             "Click <b>Add to Cart</b> to load SKU 172791.",
+             "Apply coupon code <b>assess-spend50</b> (a vanity code &mdash; not an actual $50 spend rule).",
+             "Expected result: the book should show 20% off."
+           ],
+           cart:[{label:"Add SKU 172791", url:cart([{id:172791,qty:1}])}]}],
+        ["Serialized / customer-specific codes","custom",
+          "For more targeted, one-time offers &mdash; a birthday discount addressed to a specific customer by name, for example &mdash; ODP needs a code that's tied to one shopper and can't be reused or shared around.",
+          "Built the same way as a vanity code, but the underlying promotion is configured with a usage limit of one redemption per customer, so a second attempt with the same code fails. Generating large volumes of unique serialized codes happens in ODP's own systems rather than inside VTEX's pricing engine; VTEX's role is to validate and enforce the usage limit once a code is presented.",
+          {status:"tested", vtexName:"[Assessment] Q06 Serialized Coupon", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/54bbf5b4-79f9-42d1-8110-24f54c111e04",
+           steps:[
+             "Click <b>Add to Cart</b> to load SKU 3919316, using an identified (logged-in) customer profile.",
+             "Apply coupon code <b>assess-bday-0001</b>.",
+             "Expected result: 20% off the ink.",
+             "Negative check: try the same code again in a second cart &mdash; it should fail, since it's limited to one use."
+           ],
+           cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}],
+        ["Auto-applied promotions","native",
+          "Not every discount should require the shopper to do anything &mdash; instant savings, clearance pricing, and campaign-triggered offers are meant to apply the moment a qualifying item hits the cart, with no code to remember or type.",
+          "Campaign, Regular (when not coupon-gated), and Price Table promotions all evaluate automatically against the cart's contents and the shopper's profile &mdash; no code entry is part of the condition, so the discount simply appears once the shopper qualifies.",
+          {status:"open", note:"Any Campaign or Price Table promotion in this batch applies with no code &mdash; see Buy 1 Get 1 Free (C01) or Clearance Pricing (P01) under Requirement #1 for a representative walkthrough."}],
+        ["Manually applied codes","native",
+          "The counterpart to auto-applied promotions: some discounts should stay dormant until the shopper actively enters a code they received through a targeted channel, keeping the offer from being visible to every visitor.",
+          "The promotion's condition includes a coupon requirement; VTEX validates whatever the shopper types against the configured code, its UTM Source/Campaign, and any usage-limit conditions before applying the discount.",
+          {status:"open", note:"See Selected SKU % off (R01) under Requirement #1 for a representative coupon-entry walkthrough."}],
+        ["Global coupon &mdash; % off","native",
+          "A sitewide &ldquo;spend and save&rdquo; coupon &mdash; ODP's own phrasing was &ldquo;20% off your qualifying purchase&rdquo; &mdash; meant to reward a shopper's overall basket once it crosses a spend floor, while carving out categories like Services that shouldn't be discounted this way.",
+          "A coupon-gated promotion with a minimum-spend condition across the qualifying catalog and a percentage discount applied to the qualifying items only; excluded categories are configured with categoriesAreInclusive set to false so they never receive the discount even in the same cart.",
+          {status:"tested", vtexName:"[Assessment] Q01 Global Coupon 20 Percent", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/03933d2f-9e42-4b4e-bd11-bb61e4446ef4",
+           steps:[
+             "Click <b>Add to Cart</b> to load a non-Services bundle that clears the $100 floor (SKUs 9999918, 9999916, and 2&times; 9999839).",
+             "Apply coupon code <b>assess-global20</b>.",
+             "Expected result: the qualifying items should show 20% off; gift cards and Services items stay excluded even if added to the same cart."
+           ],
+           cart:[{label:"Add qualifying bundle", url:cart([{id:9999918,qty:1},{id:9999916,qty:1},{id:9999839,qty:2}])}]}],
+        ["Global coupon &mdash; $ off","native",
+          "The dollar-off counterpart to the percentage-based sitewide coupon &mdash; ODP's phrasing was &ldquo;$20 off your qualifying purchase&rdquo; &mdash; for when the business wants to promise a guaranteed savings amount rather than a variable percentage.",
+          "Same spend-floor and category-exclusion structure as the percentage variant, with the reward expressed as a flat nominal cart-level discount instead of a percentage.",
+          {status:"tested", vtexName:"[Assessment] Q02 Global Coupon 20 Dollars", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/0689c017-b53f-4637-8aaa-dc082c009ac7",
+           steps:[
+             "Click <b>Add to Cart</b> to load the same qualifying bundle used above.",
+             "Apply coupon code <b>assess-global20off</b>.",
+             "Expected result: the cart should drop US$20."
+           ],
+           cart:[{label:"Add qualifying bundle", url:cart([{id:9999918,qty:1},{id:9999916,qty:1},{id:9999839,qty:2}])}]}],
+        ["Highest-priced item % off","native",
+          "ODP's blueprint describes this as &ldquo;20% off one qualifying regularly priced item&rdquo; &mdash; a coupon that rewards the shopper's single most expensive eligible item in the cart, rather than discounting everything they've added.",
+          "Built with the isAppliedToMostExpensive flag set, scoped to the eligible categories and capped to a single affected item, so VTEX automatically identifies and discounts only the highest-priced qualifying SKU in the cart &mdash; no manual selection required from the shopper.",
+          {status:"tested", vtexName:"[Assessment] Q03 Highest Priced Item 20 Percent", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/f4ee0c29-9506-42fd-99c5-c9a4fb096d1d",
+           steps:[
+             "Click <b>Add to Cart</b> to load SKU 9999918 (the more expensive item) and SKU 9999916 (the cheaper item) together.",
+             "Apply coupon code <b>assess-highest20</b>.",
+             "Expected result: only the more expensive item (the calendar) should receive 20% off; the cheaper labels should not."
+           ],
+           cart:[{label:"Add SKU 9999918 + 9999916", url:cart([{id:9999918,qty:1},{id:9999916,qty:1}])}]}],
+        ["Gift with purchase","native",
+          "ODP's example was &ldquo;free $25 gift card with a qualifying $100 purchase&rdquo; &mdash; once a shopper's basket crosses the spend floor, they're offered a free item as a thank-you, rather than a discount on what they've already bought.",
+          "Configured as a buyAndWin promotion with a spend floor across all qualifying items and a designated gift SKU (with its own quantity) that becomes selectable once the shopper qualifies. Because buyAndWin requires a specific SKU or collection to key off of, the assessment build points it at a broad qualifying collection so nearly any $100+ basket triggers it.",
+          {status:"tested", vtexName:"[Assessment] Q04 Gift With Purchase 25", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/4d8f3560-45e1-46e2-b51a-a061228f60f7",
+           steps:[
+             "Click <b>Add to Cart</b> to load SKU 9999060 (the laptop) &mdash; on its own it's enough to clear the $100 floor.",
+             "Apply coupon code <b>assess-gwp25</b>.",
+             "Expected result: a free gift SKU (9681581, a $25 Apple eGift Card) should appear as a selectable gift."
+           ],
+           cart:[{label:"Add SKU 9999060", url:cart([{id:9999060,qty:1}])}]}],
+        ["Stackability rules","native",
+          "ODP needs control over which discounts are allowed to combine on the same cart &mdash; some promotions, like a loyalty marker, should always be able to stack alongside another active discount, while most everyday promotions should be exclusive so shoppers can't chain multiple codes into an unintended compounded discount.",
+          "Every promotion carries a native cumulative flag, plus discount caps such as a maximum unit price discount or a total value floor and ceiling that further control how far a stacked combination can go. Most of ODP's assessment promotions are configured non-cumulative by design; the two exceptions that need to coexist with other discounts &mdash; the year-one Business Select offer and the TrueLoyal marker &mdash; are explicitly set to cumulative=true.",
+          {status:"open", note:"Demonstrated by contrast across the batch: most promotions are non-cumulative (C01, R01&ndash;R09) so only one fires per cart, while Service Depot Dollars and the TrueLoyal marker (L01) are cumulative=true and stack with other active discounts."}],
+        ["Coupon limits (chain, customer, qty, geo)","native",
+          "Beyond simply having a code, ODP needs to control how far that code can be used &mdash; a limited number of total redemptions, a cap per customer, a maximum quantity of items it can affect, or even a restriction to certain ZIP codes for a regional campaign.",
+          "VTEX exposes these as native fields on every promotion: maxUsage (total redemptions), maxUsagePerClient (per-customer cap), maxNumberOfAffectedItems (quantity cap), and zipCodeRanges (geographic restriction) &mdash; all configurable without any custom development.",
+          {status:"open", note:"See Quantity-Limited Sale Price (R03, maxNumberOfAffectedItems=10, Requirement #1) and Serialized Coupon (Q06, maxUsage=1 / maxUsagePerClient=1, above) for concrete limit configurations already validated in this batch."}],
+        ["TrueLoyal coupon identifier","custom",
+          "TrueLoyal, ODP's loyalty platform, runs entirely outside VTEX &mdash; but when a shopper redeems a loyalty-specific code at checkout, that redemption still needs to be visible to TrueLoyal so it can assign the right reward, even though no money should change hands on the VTEX side.",
+          "Modeled as a Regular promotion whose discount formula evaluates to zero (discountExpression: total * 0), tied to its own UTM source, campaign, and coupon code. The order and orderForm still record this promotion's ID, which is what lets TrueLoyal identify that a loyalty coupon was used &mdash; the promotion is deliberately cumulative so it can sit alongside whatever other discount is actually being applied.",
+          {status:"tested", vtexName:"[Assessment] L01 TrueLoyal Coupon Marker", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/3d0bfc7b-2e75-4b91-b9e9-4f0b794a86e9",
+           steps:[
+             "Click <b>Add to Cart</b> to load any qualifying SKU (172791 works).",
+             "Apply coupon code <b>assess-loyalty</b>.",
+             "Expected result: the total should not change &mdash; this promotion carries zero monetary value. Check the order or orderForm data to confirm the promotion ID is still listed, which is what TrueLoyal reads to assign the reward.",
+             "It's fine for this to coexist with another active discount on the same cart, since it's configured as cumulative."
+           ],
+           cart:[{label:"Add SKU 172791", url:cart([{id:172791,qty:1}])}]}],
+        ["Guest / POS checkout redemption","custom",
+          "At in-store POS, a shopper checking out as a guest doesn't present any identifying information, which raises the question of how a code meant to be used once per customer can be enforced when there's no customer identity to check it against.",
+          "This remains an open item: without an identified profile, a per-customer usage limit can only be enforced by the uniqueness of the code string itself, and that gap hasn't been resolved for ODP's POS flow yet.",
+          {status:"open", note:"Called out during Serialized Coupon testing (Q06 above): guest/POS identity isn't guaranteed. No dedicated POS test exists yet &mdash; unresolved for ODP today."}]
+      ]
+    },
+    { n:4, title:"Loyalty &amp; Membership Pricing", flag:"custom",
+      doc:DOC, docNote:"ODP Promotions Blueprint &mdash; TrueLoyal, Reward Member &amp; Business Select sections",
+      caps:[
+        ["Back in Rewards","custom",
+          "ODP's loyalty program rewards shoppers with points or dollars back on qualifying purchases &mdash; Back in Rewards credits money back to a shopper's loyalty balance based on what's in their cart.",
+          "TrueLoyal listens to VTEX's order events and calculates the reward entirely on its own platform &mdash; there's no promotion logic built inside VTEX for this; VTEX's job is limited to making sure the order data TrueLoyal needs is available.",
+          {status:"open", note:"Listed under &ldquo;Not in this VTEX batch&rdquo; &mdash; TrueLoyal only, so there's no VTEX promotion to test directly."}],
+        ["Bonus Rewards","custom",
+          "A companion mechanic to Back in Rewards &mdash; extra loyalty points or credit awarded on top of the standard earn rate, typically to incentivize a specific category or campaign.",
+          "Same TrueLoyal-owned model as Back in Rewards: VTEX passes qualifying order data, and TrueLoyal calculates and applies the bonus entirely outside VTEX's promotions engine.",
+          {status:"open", note:"Listed under &ldquo;Not in this VTEX batch&rdquo; &mdash; TrueLoyal only, so there's no VTEX promotion to test directly."}],
+        ["Rewards redemption (Buy X category/item/amount, get Y back)","custom",
+          "&ldquo;Buy this category, item, or spend this amount, get points back&rdquo; &mdash; a flexible loyalty mechanic that ties a reward back to specific purchase behavior.",
+          "Also owned entirely by TrueLoyal &mdash; VTEX's involvement is limited to sending the qualifying cart or order data the loyalty platform needs to calculate the reward.",
+          {status:"open", note:"Listed under &ldquo;Not in this VTEX batch&rdquo; &mdash; TrueLoyal only, so there's no VTEX promotion to test directly."}],
+        ["Member-exclusive pricing (Reward Member)","native",
+          "Rewards members should see a better price automatically, without needing a coupon &mdash; the moment they're recognized as a member, the member price should just be there.",
+          "A Price Table promotion restricted by a cluster condition requiring the rewardmember tier on the shopper's profile. As soon as VTEX recognizes that tier, it serves the corresponding price table &mdash; no coupon, no manual step.",
+          {status:"tested", vtexName:"[Assessment] P02 Reward Member Pricing", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/c46165e7-b5b7-48c5-b08b-2245b18e089f",
+           steps:[
+             "Open a cart session mapped to the assessment-rewardmember price table, using profile assessment.reward@officedepot.example.",
+             "Click <b>Add to Cart</b> to load SKU 3919316.",
+             "Expected result: the price should be US$49.99."
+           ],
+           cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}],
+        ["Business Select (BizSelect) discount tiers","native",
+          "ODP's Business Select members expect deeper discounts as their purchase quantity increases &mdash; buying more units of the same item should unlock a better per-unit price, similar to a bulk-pricing structure. ODP flagged a specific gap here: applying a flat percentage discount on top of an item that already has tiered base pricing wasn't working once the shopper's quantity moved past the first tier.",
+          "Also a Price Table promotion restricted to the businessselect tier. Rather than layering a percentage discount on top of tiered base pricing &mdash; the combination that doesn't work &mdash; the validated approach configures multiple minimum-quantity fixed prices directly inside the same price table, so the price itself steps down as quantity increases. It reproduces the tiered-savings outcome the business wants, just through a different mechanism than originally assumed.",
+          {status:"tested", vtexName:"[Assessment] P03 Business Select Pricing", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/83a83489-a69c-4cc8-bc0b-9f544144696a",
+           steps:[
+             "Open a cart session mapped to the assessment-bizselect price table, using profile assessment.business@officedepot.example.",
+             "Use the buttons below to load either 1 or 5 units of SKU 3919316.",
+             "Expected result: 1 unit should price at US$52.99; 5 units should price at US$49.99 each."
+           ],
+           cart:[
+             {label:"Add 1&times; SKU 3919316", url:cart([{id:3919316,qty:1}])},
+             {label:"Add 5&times; SKU 3919316", url:cart([{id:3919316,qty:5}])}
+           ]}],
+        ["BLP / offer stacking logic","native",
+          "Loyalty offers often need to combine with whatever else is already discounting the cart &mdash; a member price alongside a sitewide sale, for instance &mdash; rather than being mutually exclusive with everything else.",
+          "Uses the same native cumulative flag described under Coupon &amp; Promo Code Management, applied to loyalty-specific promotions so they can be explicitly allowed to combine with other active price tables and discounts.",
+          {status:"open", note:"See Stackability Rules under Requirement #3 &mdash; Service Depot Dollars and the TrueLoyal marker (L01) are both configured cumulative=true."}],
+        ["Service Depot Dollars (BizSelect year-1 offer)","native",
+          "ODP's Business Select program originally ran on roughly one million individual, largely identical coupons for its first-year member offer &mdash; a volume that's operationally difficult to manage and update.",
+          "Consolidated into a Regular promotion restricted to the tier=BS1 cluster, configured as cumulative so it stacks with other active discounts, and targeted through a dedicated UTM source and campaign rather than a unique coupon per customer. This single configuration approach is what allowed the roughly 1 million individual coupons to be reduced down to about 25&ndash;50 promotion configurations.",
+          {status:"open", note:"Listed under &ldquo;Not in this VTEX batch&rdquo; &mdash; waiting on the Business Select coupon matrix before this consolidation can be built and tested as an [Assessment] promotion."}]
+      ]
+    },
+    { n:5, title:"BOPIS &amp; Location-Based Promotions", flag:"native",
+      doc:DOC, docNote:"ODP Promotions Blueprint &mdash; flagged &ldquo;Not Discussed Yet&rdquo;",
+      caps:[
+        ["BOPIS-specific promotions","custom",
+          "ODP may eventually want promotions that specifically reward or incentivize buy-online-pickup-in-store behavior &mdash; a discount that only applies, or applies differently, when a shopper chooses store pickup instead of shipping.",
+          "This use case hasn't been discussed with ODP yet, so no VTEX approach has been designed or built for it.",
+          {status:"open", note:"Listed under &ldquo;Not in this VTEX batch&rdquo; &mdash; not yet discussed with ODP, so there's nothing to test."}],
+        ["Location-based pricing to drive foot traffic","custom",
+          "Beyond BOPIS-specific discounts, ODP might want pricing that varies by a shopper's proximity to a physical store, as a way to draw foot traffic into locations.",
+          "No ODP-specific design exists yet. It would likely reuse the same Price Table and zone/store scoping already validated for Instant Savings and Reward pricing, but the actual trigger &mdash; how a promotion would detect and respond to a shopper's proximity to a store &mdash; hasn't been defined.",
+          {status:"open", note:"No assessment promotion exists for this yet &mdash; still open, same as BOPIS-specific promotions above."}]
+      ]
+    },
+    { n:6, title:"Specialty &amp; Program-Specific Discounts", flag:"native",
+      doc:DOC, docNote:"ODP Promotions Blueprint &mdash; Employees Discounts &amp; Retail Only sections (Teacher/Military and Price Match not yet documented)",
+      caps:[
+        ["Employee &mdash; Services 30%","native",
+          "ODP and OfficeMax employees receive a meaningful discount as a benefit of employment &mdash; 30% off Tech Services, Print Services, and Performance Protection Plans specifically, reflecting the higher margin available on services versus physical goods.",
+          "A Regular promotion (this pattern isn't exclusive to any one promotion type) scoped to the Services and Print &amp; Copy categories, gated by a customer cluster condition that checks for an @theodpcorp.com email address on the shopper's profile. A matching coupon code applies the discount, and it's built so it won't stack with the other two employee-discount tiers on the same item.",
+          {status:"tested", vtexName:"[Assessment] E01 Employee Services 30 Percent", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/31488b64-a32d-434b-a740-5820a446220c",
+           steps:[
+             "Click <b>Add to Cart</b> to load SKU 9997782 (2-year accidental damage protection plan, a Services item).",
+             "Log in with an employee email ending in @theodpcorp.com and apply coupon code <b>assess-emp30</b>.",
+             "Expected result: 30% off.",
+             "Negative check: add an office-supply item to the same cart &mdash; it should not receive this 30%."
+           ],
+           cart:[{label:"Add SKU 9997782", url:cart([{id:9997782,qty:1}])}]}],
+        ["Employee &mdash; Supplies 20%","native",
+          "A mid-tier employee benefit &mdash; 20% off Supplies, Furniture, Tech Accessories (chargers, keyboards, mice, surge protectors, and similar), and Snacks &amp; Drinks.",
+          "Same employee-cluster mechanic as the Services tier, scoped instead to Office Supplies, Furniture, and Breakroom categories, with its own coupon code.",
+          {status:"tested", vtexName:"[Assessment] E02 Employee Supplies 20 Percent", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/db5c101d-98ab-4bbc-b7e9-974bf07d8041",
+           steps:[
+             "Click <b>Add to Cart</b> to load SKU 9999918.",
+             "Log in with an employee email ending in @theodpcorp.com and apply coupon code <b>assess-emp20</b>.",
+             "Expected result: 20% off."
+           ],
+           cart:[{label:"Add SKU 9999918", url:cart([{id:9999918,qty:1}])}]}],
+        ["Employee &mdash; Technology 10%","native",
+          "The broadest and lowest-percentage employee tier &mdash; 10% off Technology (laptops, desktops, tablets, printers, and similar) and Ink &amp; Toner, reflecting tighter margins on hardware.",
+          "Same employee-cluster mechanic, scoped to Computers &amp; Accessories, Ink &amp; Toner, and Electronics categories, with its own coupon code &mdash; completing the three-tier structure alongside Services and Supplies.",
+          {status:"tested", vtexName:"[Assessment] E03 Employee Technology 10 Percent", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/0068ddd9-62ed-4eb7-96da-9fd2988a4498",
+           steps:[
+             "Click <b>Add to Cart</b> to load SKU 3919316.",
+             "Log in with an employee email ending in @theodpcorp.com and apply coupon code <b>assess-emp10</b>.",
+             "Expected result: 10% off."
+           ],
+           cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}],
+        ["Subscription incentives","custom",
+          "ODP wants to reward shoppers who set up a recurring, auto-delivery order &mdash; ink, toner, or cleaning supplies on a subscription &mdash; with a modest ongoing discount as an incentive to subscribe rather than buy one-off.",
+          "Designed as a Regular promotion using a Subscription-order condition, so only carts flagged as a subscription order would receive the discount. Testing surfaced a real limitation: the public API used to create the promotion doesn't currently persist that subscription-order field, meaning it can't be safely activated as-is &mdash; turned on today, it would discount any matching cart, subscription or not. It's intentionally left inactive until the condition is set correctly in Admin.",
+          {status:"tested", vtexName:"[Assessment] R08 Subscription Ink 5 Percent", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/a4edda4a-615d-40eb-866a-c51dcbcfcd83",
+           caution:"This promotion is currently inactive. Do not test it until it has been reactivated in Admin with Is a subscription order set correctly &mdash; as configured today, activating it would discount any matching cart, subscription or not.",
+           steps:[
+             "Once reactivated: click <b>Add to Cart</b> to load SKU 3919316 (or 9999379) into a subscription/auto-delivery cart.",
+             "Confirm the cart is flagged as a subscription order.",
+             "Expected result: a 5% discount should apply only to the subscription cart &mdash; a normal, one-time cart with the same item should not receive it."
+           ],
+           cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}],
+        ["Teacher &amp; Military discounts (ID.me)","custom",
+          "ODP currently verifies teacher and military eligibility through ID.me before granting a discount &mdash; a use case that hasn't yet been mapped onto a VTEX promotion condition.",
+          "Not yet addressed in the promotions blueprint. Mapping ID.me's eligibility verification to a VTEX-native condition &mdash; likely a customer cluster populated after successful ID.me verification &mdash; still needs to be scoped.",
+          {status:"open", note:"Not documented and not in this assessment batch &mdash; still to be scoped."}],
+        ["Price match","custom",
+          "A price-match policy lets a shopper request that ODP match a lower price found elsewhere &mdash; a customer-service-driven discount rather than a broadly advertised promotion.",
+          "Not yet documented in the promotions blueprint; the mechanism for applying a one-off, agent-driven price match still needs to be scoped in discovery.",
+          {status:"open", note:"Not documented and not in this assessment batch &mdash; still to be scoped."}],
+        ["Trade-in discounts","custom",
+          "ODP offers a trade-in program where a shopper can receive credit toward a new purchase by turning in an old device &mdash; a mechanic that today lives entirely within the in-store retail flow.",
+          "Flagged Retail Only in the blueprint: ODP's existing in-store system (IPS) continues to handle trade-in valuation and credit, and no VTEX promotions integration is planned for it.",
+          {status:"open", note:"Listed under &ldquo;Not in this VTEX batch&rdquo; &mdash; Retail-only, owned by IPS. There is no VTEX promotion to test."}]
+      ]
+    },
+    { n:7, title:"Services Pricing &amp; CPD Configurator Pricing", flag:"native",
+      doc:DOC, docNote:"Not yet in the ODP Promotions Blueprint &mdash; to be scoped",
+      caps:[
+        ["Merchandise &amp; gift cards for services","custom",
+          "ODP sells merchandise and gift cards specifically for services &mdash; configurable by category, class, or individual SKU &mdash; a meaningful part of print &amp; copy service revenue.",
+          "Not yet covered in the promotions blueprint; how these configurable service gift cards would be modeled as VTEX promotions or price tables still needs to be scoped.",
+          {status:"open", note:"Not documented and not in this assessment batch &mdash; still to be scoped."}],
+        ["CPD pricing with configurator","custom",
+          "Copy/Print/Document (CPD) services are often priced through a configurator &mdash; the final price depends on choices the shopper makes, like paper stock, binding, or quantity, rather than a flat SKU price.",
+          "Not yet documented; configurator-driven CPD pricing, and how a resulting price interacts with the promotions engine, still needs to be scoped in discovery.",
+          {status:"open", note:"Not documented and not in this assessment batch &mdash; still to be scoped."}]
+      ]
+    },
+    { n:8, title:"Compliance, MAP &amp; State Price Protection", flag:"custom",
+      doc:DOC, docNote:"ODP Promotions Blueprint &mdash; Instant Savings (MAP) &amp; Regular Promotion (shipping) sections",
+      caps:[
+        ["Free shipping","native",
+          "A classic incentive &mdash; waive shipping entirely once a shopper enters a qualifying code, removing what's often the single biggest reason for cart abandonment.",
+          "A Regular promotion carrying a 100% shipping discount applied across all shipping methods (SLAs) the shopper is offered, unlocked by its own coupon code.",
+          {status:"tested", vtexName:"[Assessment] S01 Free Shipping", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/55524473-8942-4cad-befc-54346e01c930",
+           steps:[
+             "Click <b>Add to Cart</b> to load SKU 172791.",
+             "Apply coupon code <b>assess-freeship</b>.",
+             "Enter a shippable US address (validated with ZIP 33101) and review the available shipping options.",
+             "Expected result: freight should drop to US$0 on the selected shipping method(s)."
+           ],
+           cart:[{label:"Add SKU 172791", url:cart([{id:172791,qty:1}])}]}],
+        ["Shipping % off","native",
+          "A softer version of free shipping &mdash; knock a percentage off the shipping cost rather than eliminating it entirely, useful when ODP wants to reduce but not fully absorb fulfillment cost.",
+          "Same shipping-discount mechanic as free shipping, configured at a partial percentage instead of 100%, across all SLAs.",
+          {status:"tested", vtexName:"[Assessment] S02 Shipping 20 Percent Off", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/e5714f75-8906-4c67-b37d-25165dd13136",
+           steps:[
+             "Click <b>Add to Cart</b> to load SKU 172791.",
+             "Apply coupon code <b>assess-ship20</b>.",
+             "Expected result: freight should drop 20%, not to zero (unless the SLA is already free)."
+           ],
+           cart:[{label:"Add SKU 172791", url:cart([{id:172791,qty:1}])}]}],
+        ["Shipping $ off","native",
+          "A guaranteed, easy-to-communicate shipping discount &mdash; &ldquo;$10 off shipping&rdquo; &mdash; rather than a variable percentage.",
+          "Same mechanic again, with the reward expressed as a flat nominal amount off shipping instead of a percentage, and built so it can never push the shipping cost below zero.",
+          {status:"tested", vtexName:"[Assessment] S03 Shipping 10 Dollars Off", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/bbbd05e0-90c8-4383-b3b1-df23c34e335f",
+           steps:[
+             "Click <b>Add to Cart</b> to load SKU 172791.",
+             "Apply coupon code <b>assess-ship10</b>.",
+             "Expected result: freight should drop by up to US$10 and never go negative. Try with one shipping option and, if available, two."
+           ],
+           cart:[{label:"Add SKU 172791", url:cart([{id:172791,qty:1}])}]}],
+        ["MAP pricing (&ldquo;See price in cart&rdquo;)","custom",
+          "Minimum Advertised Price (MAP) agreements with suppliers sometimes prohibit ODP from displaying a discounted price anywhere the public can see it &mdash; the workaround shoppers are used to is a &ldquo;See price in cart&rdquo; message on the product page, with the real discounted price only revealed once the item is added to the cart.",
+          "Built as a dedicated MAP price table combined with a marketing tag that the storefront's front-end reads to decide whether to hide the strike-through price on the PLP and PDP. The discounted price still lives in the price table and applies correctly in the cart &mdash; hiding it earlier in the shopping journey is a front-end behavior layered on top of a native price table, not a built-in Admin toggle.",
+          {status:"tested", vtexName:"[Assessment] P05 Instant Savings MAP Hidden", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/d8052876-447e-43e3-8420-b8f904a079a7",
+           steps:[
+             "Open a cart session mapped to the assessment-instant-map price table, then browse to SKU 9999060 on its listing or product page without adding it to cart yet.",
+             "Expected result on PLP/PDP: the strike-through price should be hidden, replaced with a &ldquo;See price in cart&rdquo; message (this depends on the storefront consuming the assessment-map-hidden tag).",
+             "Click <b>Add to Cart</b> to load the item, then check the cart: the price should show as US$1,699."
+           ],
+           cart:[{label:"Add SKU 9999060", url:cart([{id:9999060,qty:1}])}]}],
+        ["MAPPED SKU management","custom",
+          "Beyond the pricing mechanism itself, ODP needs a way to flag and manage which SKUs are subject to a MAP agreement in the first place, since that list changes over time as supplier agreements change.",
+          "Not yet documented in the promotions blueprint; SKU-level MAP flagging and its ongoing management still need to be scoped alongside the MAP price table work above.",
+          {status:"open", note:"Not documented and not in this assessment batch &mdash; still to be scoped."}],
+        ["All-state price protection plans","custom",
+          "Certain states have their own price-protection regulations that ODP needs to comply with, separate from supplier MAP agreements.",
+          "Not yet documented; scoping state-by-state price protection compliance is still pending, the same way finer geographic price-list granularity is (see Requirement #2).",
+          {status:"open", note:"Not documented and not in this assessment batch &mdash; still to be scoped."}]
+      ]
+    }
+  ];
+
+  var l1bar = document.getElementById('l1bar');
+  var l2bar = document.getElementById('l2bar');
+  var l2label = document.getElementById('l2label');
+  var panelHost = document.getElementById('panelHost');
+
+  var state = { topic: TOPICS[0].n, cap: TOPICS[0].caps[0][0] };
+  try {
+    var sT = sessionStorage.getItem('pp-topic');
+    var sC = sessionStorage.getItem('pp-cap');
+    if (sT && TOPICS.some(function(t){ return String(t.n) === sT; })) state.topic = Number(sT);
+    if (sC) state.cap = sC;
+  } catch(e){}
+
+  function getTopic(n){ return TOPICS.filter(function(t){ return t.n === n; })[0]; }
+
+  function renderL1(){
+    l1bar.innerHTML = '';
+    TOPICS.forEach(function(t){
+      var btn = document.createElement('button');
+      btn.className = 'l1-btn';
+      btn.setAttribute('aria-pressed', t.n === state.topic ? 'true' : 'false');
+      btn.innerHTML =
+        '<span class="n">#'+t.n+'</span>' +
+        '<span class="t">'+t.title+'</span>' +
+        '<span class="flag '+t.flag+'">'+(t.flag==='native' ? 'Native' : 'Custom build')+'</span>';
+      btn.addEventListener('click', function(){
+        state.topic = t.n;
+        state.cap = t.caps[0][0];
+        persist();
+        renderL1(); renderL2(); renderPanel();
+      });
+      l1bar.appendChild(btn);
+    });
+  }
+
+  function renderL2(){
+    var t = getTopic(state.topic);
+    l2label.textContent = 'Requirement #'+t.n+' · '+t.title.replace(/&amp;/g,'&')+' · '+t.caps.length+' capabilities';
+    l2bar.innerHTML = '';
+    t.caps.forEach(function(c){
+      var btn = document.createElement('button');
+      btn.className = 'l2-btn';
+      btn.setAttribute('aria-pressed', c[0] === state.cap ? 'true' : 'false');
+      btn.innerHTML = '<span class="dot '+c[1]+'"></span><span>'+c[0]+'</span>';
+      btn.addEventListener('click', function(){
+        state.cap = c[0];
+        persist();
+        renderL2(); renderPanel();
+      });
+      l2bar.appendChild(btn);
+    });
+  }
+
+  function renderTestCard(test){
+    if (!test || test.status !== 'tested') {
+      var note = (test && test.note) ? test.note : 'No assessment promotion covers this capability yet.';
+      return '<div class="test-card is-open">' +
+          '<span class="test-status open">Not yet tested</span>' +
+          '<h3>How to test this</h3>' +
+          '<p class="test-open-note">'+note+'</p>' +
+        '</div>';
+    }
+    var stepsHtml = (test.steps||[]).map(function(s){return '<li>'+s+'</li>';}).join('');
+    var cartHtml = '';
+    if (test.cart && test.cart.length){
+      cartHtml = '<div class="cart-btn-row">' + test.cart.map(function(c){
+        return '<a class="cart-btn" href="'+c.url+'" target="_blank" rel="noopener">&#128722; '+c.label+'</a>';
+      }).join('') + '</div>';
+    }
+    var cautionHtml = test.caution ? '<p class="test-caution">&#9888; '+test.caution+'</p>' : '';
+    return '<div class="test-card">' +
+        '<span class="test-status tested">Validated in officedepotdev</span>' +
+        '<h3>How to test this</h3>' +
+        '<div class="test-name">'+test.vtexName+'</div>' +
+        '<div class="admin-link-row"><span class="label">Admin record</span><a class="admin-link-full" href="'+test.adminUrl+'" target="_blank" rel="noopener">'+test.adminUrl+'</a></div>' +
+        cautionHtml +
+        '<ol class="test-steps-list">'+stepsHtml+'</ol>' +
+        cartHtml +
+      '</div>';
+  }
+
+  function renderPanel(){
+    var t = getTopic(state.topic);
+    var cap = t.caps.filter(function(c){ return c[0] === state.cap; })[0];
+    if (!cap) return;
+    var flag = cap[1], scenario = cap[2], config = cap[3], test = cap[4];
+
+    panelHost.innerHTML =
+      '<div class="panel-head">' +
+        '<div>' +
+          '<div class="id mono">Requirement #'+t.n+' &middot; '+t.title+'</div>' +
+          '<h2>'+cap[0]+'</h2>' +
+        '</div>' +
+        '<span class="badge '+flag+'">'+(flag==='native' ? 'Native &mdash; no custom dev' : 'Custom build / integration') + '</span>' +
+      '</div>' +
+      '<div class="content-grid">' +
+        '<div class="text-col">' +
+          '<div class="block">' +
+            '<h3>Business Scenario</h3>' +
+            '<p>'+scenario+'</p>' +
+          '</div>' +
+          '<div class="block config">' +
+            '<h3>How It&rsquo;s Configured in VTEX</h3>' +
+            '<p>'+config+'</p>' +
+          '</div>' +
+          '<div class="block">' +
+            '<h3>Documentation</h3>' +
+            '<a class="doclink" href="'+t.doc+'" target="_blank" rel="noopener">'+(t.docNote ? t.docNote : "VTEX documentation for this requirement")+'</a>' +
+          '</div>' +
+        '</div>' +
+        '<div class="test-col">' +
+          renderTestCard(test) +
+        '</div>' +
+      '</div>';
+  }
+
+  function persist(){
+    try {
+      sessionStorage.setItem('pp-topic', String(state.topic));
+      sessionStorage.setItem('pp-cap', state.cap);
+    } catch(e){}
+  }
+
+  if (!getTopic(state.topic).caps.some(function(c){ return c[0] === state.cap; })){
+    state.cap = getTopic(state.topic).caps[0][0];
+  }
+
+  renderL1();
+  renderL2();
+  renderPanel();
+
+  var stickyHead = document.getElementById('stickyHead');
+  function syncHeadHeight(){
+    if (!stickyHead) return;
+    document.documentElement.style.setProperty('--head-h', stickyHead.offsetHeight + 'px');
+  }
+  syncHeadHeight();
+  window.addEventListener('resize', syncHeadHeight);
+  if (window.ResizeObserver){
+    new ResizeObserver(syncHeadHeight).observe(stickyHead);
+  }
+})();
+</script>
+
+</body>
+</html>
