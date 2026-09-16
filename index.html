@@ -112,6 +112,7 @@
   .block p{font-size:15px; line-height:1.72; color:var(--ink); margin:0;}
   .block.config p{color:var(--ink-soft);}
 
+  .doclinks{display:flex; flex-direction:column; align-items:flex-start; gap:8px;}
   .doclink{font-size:15px; font-weight:600; color:var(--pink); word-break:break-word; display:inline-block;}
   .doclink:hover{text-decoration:underline;}
 
@@ -171,7 +172,26 @@
 
 <script>
 (function(){
-  var DOC = "https://docs.google.com/document/d/1jHEyUhrigG4X62nH2C6L11hPssKzbVLhpnnUmkORa4Y/edit";
+  var PUBLIC_DOCS = {
+    promotions: ["Promotions & Taxes overview", "https://help.vtex.com/en/docs/tutorials/promotions-overview"],
+    campaign: ["Creating a campaign promotion", "https://help.vtex.com/en/docs/tutorials/campaign-promotion"],
+    campaignAudience: ["Creating a campaign audience", "https://help.vtex.com/en/docs/tutorials/creating-a-campaign-audience"],
+    regular: ["Creating a regular promotion", "https://help.vtex.com/en/docs/tutorials/regular-promotion"],
+    bogo: ["Buy One Get One promotions", "https://help.vtex.com/en/docs/tutorials/buy-one-get-one"],
+    buyTogether: ["Creating a Buy Together promotion", "https://help.vtex.com/en/docs/tutorials/buy-together"],
+    progressive: ["Progressive Discount promotions", "https://help.vtex.com/en/docs/tutorials/progressive-discount"],
+    competition: ["Promotion competition and combination", "https://help.vtex.com/en/docs/tutorials/how-promotion-competition-works"],
+    pricing: ["Pricing overview", "https://developers.vtex.com/docs/guides/pricing-overview"],
+    priceTableBenefit: ["Creating a promotion using a price table", "https://help.vtex.com/en/docs/tutorials/how-to-create-a-benefit-using-price-table"],
+    userPriceTables: ["Configuring price tables for specific users", "https://help.vtex.com/en/docs/tutorials/setting-up-price-tables-for-specific-users"],
+    coupons: ["Coupons", "https://help.vtex.com/en/docs/tutorials/coupons-beta"],
+    couponsApi: ["Creating and managing coupons with the Promotions API", "https://developers.vtex.com/docs/guides/creating-and-managing-coupons-with-promotions-api"],
+    customerCluster: ["Creating a promotion for a customer cluster", "https://help.vtex.com/en/docs/tutorials/creating-promotion-for-a-customer-cluster"],
+    employeeBenefits: ["Configuring employee benefits with customer clusters", "https://help.vtex.com/en/docs/tutorials/configure-employee-benefits-using-master-data-clusters"],
+    subscription: ["Creating a subscription promotion", "https://help.vtex.com/en/docs/tutorials/creating-a-subscription-promotion"],
+    shipping: ["Configuring shipping promotions", "https://help.vtex.com/en/docs/tutorials/configuring-shipping-promotions"],
+    promotionsApi: ["Promotions & Taxes API overview", "https://developers.vtex.com/docs/guides/rates-and-benefits-api-overview"]
+  };
   var CART_BASE = "https://officedepotdev.myvtex.com/checkout/cart/add?sc=2&redirect=true&";
 
   function cart(items){
@@ -185,7 +205,7 @@
 
   var TOPICS = [
     { n:1, title:"Full Promotional Mechanics Engine", flag:"native",
-      doc:DOC, docNote:"ODP Promotions Blueprint &mdash; Campaign, Regular &amp; Price Table Promotion sections",
+      docs:[PUBLIC_DOCS.promotions],
       caps:[
         ["Buy 1 Get 1 Free (same SKU)","native",
           "Campaign promotions define the conditions under which a discount should trigger &mdash; most often a specific SKU sitting in the cart. A straightforward Buy-One-Get-One offer is a classic example: a shopper who adds a qualifying item receives a second, identical unit as a free gift, at no cost to them. This is the kind of promotion ODP would run on a hero product to drive basket size during a campaign window.",
@@ -346,7 +366,7 @@
       ]
     },
     { n:2, title:"Geographic &amp; Segment-Based Price Lists", flag:"native",
-      doc:DOC, docNote:"ODP Promotions Blueprint &mdash; Instant Savings (Zones) &amp; Price Table Promotion sections",
+      docs:[PUBLIC_DOCS.pricing, PUBLIC_DOCS.priceTableBenefit],
       caps:[
         ["Zone-based pricing (US / Puerto Rico / Hawaii)","native",
           "ODP's instant-savings pricing isn't always uniform nationwide &mdash; a promotion might need to look different in the continental US versus Puerto Rico or Hawaii, where cost structures and market conditions differ.",
@@ -367,7 +387,7 @@
       ]
     },
     { n:3, title:"Coupon &amp; Promo Code Management", flag:"native",
-      doc:DOC, docNote:"ODP Promotions Blueprint &mdash; Coupons &amp; TrueLoyal sections",
+      docs:[PUBLIC_DOCS.coupons, PUBLIC_DOCS.couponsApi],
       caps:[
         ["Vanity codes","native",
           "A short, memorable, human-readable code &mdash; something like SPEND50 &mdash; that ODP can print on a flyer, read aloud, or feature in an email, and that a shopper types in at checkout to unlock a discount.",
@@ -464,7 +484,7 @@
       ]
     },
     { n:4, title:"Loyalty &amp; Membership Pricing", flag:"custom",
-      doc:DOC, docNote:"ODP Promotions Blueprint &mdash; TrueLoyal, Reward Member &amp; Business Select sections",
+      docs:[PUBLIC_DOCS.userPriceTables, PUBLIC_DOCS.priceTableBenefit],
       caps:[
         ["Back in Rewards","custom",
           "ODP's loyalty program rewards shoppers with points or dollars back on qualifying purchases &mdash; Back in Rewards credits money back to a shopper's loyalty balance based on what's in their cart.",
@@ -512,7 +532,7 @@
       ]
     },
     { n:5, title:"BOPIS &amp; Location-Based Promotions", flag:"native",
-      doc:DOC, docNote:"ODP Promotions Blueprint &mdash; flagged &ldquo;Not Discussed Yet&rdquo;",
+      docs:[PUBLIC_DOCS.promotions, PUBLIC_DOCS.pricing],
       caps:[
         ["BOPIS-specific promotions","custom",
           "ODP may eventually want promotions that specifically reward or incentivize buy-online-pickup-in-store behavior &mdash; a discount that only applies, or applies differently, when a shopper chooses store pickup instead of shipping.",
@@ -525,7 +545,7 @@
       ]
     },
     { n:6, title:"Specialty &amp; Program-Specific Discounts", flag:"native",
-      doc:DOC, docNote:"ODP Promotions Blueprint &mdash; Employees Discounts &amp; Retail Only sections (Teacher/Military and Price Match not yet documented)",
+      docs:[PUBLIC_DOCS.regular, PUBLIC_DOCS.customerCluster],
       caps:[
         ["Employee &mdash; Services 30%","native",
           "ODP and OfficeMax employees receive a meaningful discount as a benefit of employment &mdash; 30% off Tech Services, Print Services, and Performance Protection Plans specifically, reflecting the higher margin available on services versus physical goods.",
@@ -584,7 +604,7 @@
       ]
     },
     { n:7, title:"Services Pricing &amp; CPD Configurator Pricing", flag:"native",
-      doc:DOC, docNote:"Not yet in the ODP Promotions Blueprint &mdash; to be scoped",
+      docs:[PUBLIC_DOCS.pricing, PUBLIC_DOCS.promotions],
       caps:[
         ["Merchandise &amp; gift cards for services","custom",
           "ODP sells merchandise and gift cards specifically for services &mdash; configurable by category, class, or individual SKU &mdash; a meaningful part of print &amp; copy service revenue.",
@@ -597,7 +617,7 @@
       ]
     },
     { n:8, title:"Compliance, MAP &amp; State Price Protection", flag:"custom",
-      doc:DOC, docNote:"ODP Promotions Blueprint &mdash; Instant Savings (MAP) &amp; Regular Promotion (shipping) sections",
+      docs:[PUBLIC_DOCS.regular, PUBLIC_DOCS.pricing],
       caps:[
         ["Free shipping","native",
           "A classic incentive &mdash; waive shipping entirely once a shopper enters a qualifying code, removing what's often the single biggest reason for cart abandonment.",
@@ -657,6 +677,49 @@
   var l2label = document.getElementById('l2label');
   var panelHost = document.getElementById('panelHost');
 
+  var CAPABILITY_DOCS = {
+    "Buy 1 Get 1 Free (same SKU)":[PUBLIC_DOCS.bogo, PUBLIC_DOCS.campaign],
+    "Buy X Get Y at % off":[PUBLIC_DOCS.campaign, PUBLIC_DOCS.campaignAudience],
+    "Buy X Get Y at $ off":[PUBLIC_DOCS.campaign, PUBLIC_DOCS.campaignAudience],
+    "Spend threshold reward &mdash; % off":[PUBLIC_DOCS.campaign, PUBLIC_DOCS.campaignAudience],
+    "Spend threshold reward &mdash; $ off":[PUBLIC_DOCS.campaign, PUBLIC_DOCS.campaignAudience],
+    "Fixed price rewards":[PUBLIC_DOCS.campaign, PUBLIC_DOCS.campaignAudience],
+    "Selected SKU % off (coupon-gated)":[PUBLIC_DOCS.regular, PUBLIC_DOCS.coupons],
+    "Selected SKU $ off (coupon-gated)":[PUBLIC_DOCS.regular, PUBLIC_DOCS.coupons],
+    "Quantity-limited sale price":[PUBLIC_DOCS.regular],
+    "Buy More, Save More tiered threshold":[PUBLIC_DOCS.regular],
+    "Progressive quantity discount":[PUBLIC_DOCS.progressive],
+    "Clearance markdown":[PUBLIC_DOCS.pricing, PUBLIC_DOCS.priceTableBenefit],
+    "First-time customer discounts":[PUBLIC_DOCS.regular],
+    "% off / $ off (Instant Savings)":[PUBLIC_DOCS.pricing, PUBLIC_DOCS.priceTableBenefit],
+    "Best price logic":[PUBLIC_DOCS.competition],
+    "Bundle discounts (single basket &amp; group)":[PUBLIC_DOCS.buyTogether],
+    "Member/segment price lists (Reward Member, Business Select)":[PUBLIC_DOCS.userPriceTables],
+    "Campaign-code segment targeting":[PUBLIC_DOCS.campaign, PUBLIC_DOCS.campaignAudience],
+    "Auto-applied promotions":[PUBLIC_DOCS.promotions],
+    "Manually applied codes":[PUBLIC_DOCS.coupons, PUBLIC_DOCS.regular],
+    "Global coupon &mdash; % off":[PUBLIC_DOCS.coupons, PUBLIC_DOCS.regular],
+    "Global coupon &mdash; $ off":[PUBLIC_DOCS.coupons, PUBLIC_DOCS.regular],
+    "Highest-priced item % off":[PUBLIC_DOCS.regular],
+    "Gift with purchase":[PUBLIC_DOCS.regular, PUBLIC_DOCS.bogo],
+    "Stackability rules":[PUBLIC_DOCS.competition],
+    "Coupon limits (chain, customer, qty, geo)":[PUBLIC_DOCS.coupons, PUBLIC_DOCS.regular],
+    "TrueLoyal coupon identifier":[PUBLIC_DOCS.couponsApi, PUBLIC_DOCS.promotionsApi],
+    "Guest / POS checkout redemption":[PUBLIC_DOCS.coupons],
+    "Member-exclusive pricing (Reward Member)":[PUBLIC_DOCS.userPriceTables],
+    "Business Select (BizSelect) discount tiers":[PUBLIC_DOCS.pricing, PUBLIC_DOCS.userPriceTables],
+    "BLP / offer stacking logic":[PUBLIC_DOCS.competition],
+    "Service Depot Dollars (BizSelect year-1 offer)":[PUBLIC_DOCS.regular, PUBLIC_DOCS.customerCluster],
+    "Employee &mdash; Services 30%":[PUBLIC_DOCS.employeeBenefits, PUBLIC_DOCS.customerCluster],
+    "Employee &mdash; Supplies 20%":[PUBLIC_DOCS.employeeBenefits, PUBLIC_DOCS.customerCluster],
+    "Employee &mdash; Technology 10%":[PUBLIC_DOCS.employeeBenefits, PUBLIC_DOCS.customerCluster],
+    "Subscription incentives":[PUBLIC_DOCS.subscription],
+    "Free shipping":[PUBLIC_DOCS.shipping],
+    "Shipping % off":[PUBLIC_DOCS.shipping],
+    "Shipping $ off":[PUBLIC_DOCS.shipping],
+    "MAP pricing (&ldquo;See price in cart&rdquo;)":[PUBLIC_DOCS.pricing, PUBLIC_DOCS.priceTableBenefit]
+  };
+
   var state = { topic: TOPICS[0].n, cap: TOPICS[0].caps[0][0] };
   try {
     var sT = sessionStorage.getItem('pp-topic');
@@ -666,6 +729,9 @@
   } catch(e){}
 
   function getTopic(n){ return TOPICS.filter(function(t){ return t.n === n; })[0]; }
+  function getDocumentation(topic, capability){
+    return CAPABILITY_DOCS[capability[0]] || topic.docs || [PUBLIC_DOCS.promotions];
+  }
 
   function renderL1(){
     l1bar.innerHTML = '';
@@ -738,6 +804,9 @@
     var cap = t.caps.filter(function(c){ return c[0] === state.cap; })[0];
     if (!cap) return;
     var flag = cap[1], scenario = cap[2], config = cap[3], test = cap[4];
+    var docsHtml = getDocumentation(t, cap).map(function(doc){
+      return '<a class="doclink" href="'+doc[1]+'" target="_blank" rel="noopener">'+doc[0]+'</a>';
+    }).join('');
 
     panelHost.innerHTML =
       '<div class="panel-head">' +
@@ -759,7 +828,7 @@
           '</div>' +
           '<div class="block">' +
             '<h3>Documentation</h3>' +
-            '<a class="doclink" href="'+t.doc+'" target="_blank" rel="noopener">'+(t.docNote ? t.docNote : "VTEX documentation for this requirement")+'</a>' +
+            '<div class="doclinks">'+docsHtml+'</div>' +
           '</div>' +
         '</div>' +
         '<div class="test-col">' +
