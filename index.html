@@ -111,7 +111,13 @@
 
   .block h3{font-size:12.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--slate); margin-bottom:10px;}
   .block p{font-size:15px; line-height:1.72; color:var(--ink); margin:0;}
+  .block p + p{margin-top:13px;}
   .block.config p{color:var(--ink-soft);}
+  .block .howto{margin:13px 0 0; padding-left:20px; display:flex; flex-direction:column; gap:10px;}
+  .block .howto li{font-size:14.5px; line-height:1.68; color:var(--ink);}
+  .block .howto li b{font-weight:650;}
+  .block .howto li code{font-family:"IBM Plex Mono",monospace; font-size:12.5px; background:var(--paper-raised); border:1px solid var(--line); border-radius:6px; padding:1px 5px;}
+  .block .howto + p{margin-top:13px;}
 
   .doclinks{display:flex; flex-direction:column; align-items:flex-start; gap:8px;}
   .doclink{font-size:15px; font-weight:600; color:var(--pink); word-break:break-word; display:inline-block;}
@@ -194,7 +200,11 @@
     employeeBenefits: ["Configuring employee benefits with customer clusters", "https://help.vtex.com/en/docs/tutorials/configure-employee-benefits-using-master-data-clusters"],
     subscription: ["Creating a subscription promotion", "https://help.vtex.com/en/docs/tutorials/creating-a-subscription-promotion"],
     shipping: ["Configuring shipping promotions", "https://help.vtex.com/en/docs/tutorials/configuring-shipping-promotions"],
-    promotionsApi: ["Promotions & Taxes API overview", "https://developers.vtex.com/docs/guides/rates-and-benefits-api-overview"]
+    promotionsApi: ["Promotions & Taxes API overview", "https://developers.vtex.com/docs/guides/rates-and-benefits-api-overview"],
+    cxPlatform: ["VTEX CX Platform: overview", "https://help.vtex.com/docs/tutorials/vtex-cx-platform-overview"],
+    cxAgents: ["Official agents from VTEX CX Platform", "https://help.vtex.com/en/docs/tutorials/official-agents-from-vtex-cx-platform"],
+    giftCard: ["Setting up gift cards", "https://help.vtex.com/docs/tutorials/gift-card"],
+    giftCardApi: ["Managing VTEX gift cards with the GiftCard API", "https://developers.vtex.com/docs/guides/managing-vtex-gift-cards"]
   };
   var CART_BASE = "https://officedepotdev.myvtex.com/checkout/cart/add?sc=2&redirect=true&";
 
@@ -552,13 +562,57 @@
              {label:"Add 5&times; SKU 3919316", url:cart([{id:3919316,qty:5}])}
            ]}],
         ["BLP / offer stacking logic","native",
-          "Loyalty offers often need to combine with whatever else is already discounting the cart &mdash; a member price alongside a sitewide sale, for instance &mdash; rather than being mutually exclusive with everything else.",
-          "Uses the same native cumulative flag described under Coupon &amp; Promo Code Management, applied to loyalty-specific promotions so they can be explicitly allowed to combine with other active price tables and discounts.",
-          {status:"open", note:"See Stackability Rules under Requirement #3 and the cumulative Service Depot Dollars configuration."}],
+          "Loyalty offers often need to combine with whatever else is already discounting the cart &mdash; a member price alongside a sitewide sale, for instance &mdash; rather than being mutually exclusive with everything else. At the same time, ODP needs a guarantee that a shopper can never chain offers into a compounded discount the business didn't intend, and that when two offers overlap the shopper always lands on the best legitimate price.",
+          [
+            "There is no rules engine to build here. Stacking behavior in VTEX comes from two native settings working together: a per-promotion <b>cumulative</b> flag that decides whether an offer is allowed to combine with others, and the account-level <b>competition strategy</b> that decides who wins when two non-cumulative offers overlap on the same item. Implementing BLP is therefore a configuration and governance exercise, not a development one.",
+            {steps:[
+              "<b>Classify every loyalty offer as stackable or exclusive.</b> Build a simple matrix of ODP's active offer types &mdash; Reward Member pricing, Business Select pricing, Service Depot Dollars, sitewide coupons, employee tiers &mdash; and decide, for each pair, whether they should ever appear on the same item. This matrix is the actual BLP policy; everything below is just expressing it in Admin.",
+              "<b>Set the cumulative flag per promotion.</b> In each promotion, the <code>cumulative</code> setting (<i>&ldquo;This promotion is cumulative with other promotions&rdquo;</i>) marks it as combinable. Loyalty markers meant to always ride alongside another discount &mdash; Service Depot Dollars is the canonical example &mdash; are set cumulative. Everyday percentage and dollar-off promotions stay non-cumulative so they compete instead of compounding.",
+              "<b>Let non-cumulative offers compete.</b> When two non-cumulative promotions of the same discount type hit a common item, VTEX evaluates the possible scenarios and applies the one that gives the shopper the greatest benefit. That competition <i>is</i> best-price logic &mdash; ODP does not need to pre-rank offers or compute the winner in advance.",
+              "<b>Understand the order the survivors apply in.</b> Combinable promotions are applied after the winning non-combinable one, on the amount that has already been discounted &mdash; so stacked offers compound on a reduced base, not on the list price. Within that pass, VTEX follows a fixed order by effect type (progressive, then percentage and nominal discounts, bundles and maximum unit price, shipping, gifts, formulas, surcharges, and reward amounts) and, inside a type, orders by discount value. This ordering is what makes a stacked outcome predictable enough to model before launch.",
+              "<b>Put a floor under the stack.</b> Where the business needs a hard limit rather than a policy, use the native guardrails already on every promotion: scope the offer narrowly by SKU, category, collection, or brand; cap exposure with <code>maxNumberOfAffectedItems</code>, <code>maxUsage</code>, and <code>maxUsagePerClient</code>; and for member pricing use a price table with a fixed floor price instead of a percentage, so no combination of discounts can drive the item below it.",
+              "<b>Validate the matrix against real carts before launch.</b> Use the checkout simulation endpoint (<code>/api/checkout/pub/orderForms/simulation</code>) with a representative cart and customer profile, and read <code>ratesAndBenefitsData</code> in the response &mdash; it lists exactly which promotions were identified and applied. Running each row of the stacking matrix through simulation turns the policy into a repeatable regression test, so a new campaign can be checked against the whole existing offer portfolio before it goes live.",
+              "<b>Govern it going forward.</b> Adopt a naming convention that carries the stacking intent in the promotion name, and keep the matrix as the source of truth. Because cumulative is a per-promotion toggle, the risk to manage over time isn't the engine &mdash; it's a new promotion created cumulative by mistake."
+            ]},
+            "The practical takeaway for ODP: exclusive behavior is the default and requires nothing, stacking is an explicit opt-in per promotion, and the &ldquo;best price wins&rdquo; outcome is handled by promotion competition rather than by logic ODP has to write or maintain."
+          ],
+          {hide:true}],
         ["Service Depot Dollars (BizSelect year-1 offer)","native",
-          "ODP's Business Select program originally ran on roughly one million individual, largely identical coupons for its first-year member offer &mdash; a volume that's operationally difficult to manage and update.",
-          "Consolidated into a Regular promotion restricted to the tier=BS1 cluster, configured as cumulative so it stacks with other active discounts, and targeted through a dedicated UTM source and campaign rather than a unique coupon per customer. This single configuration approach is what allowed the roughly 1 million individual coupons to be reduced down to about 25&ndash;50 promotion configurations.",
-          {status:"open", note:"Listed under &ldquo;Not in this VTEX batch&rdquo; &mdash; waiting on the Business Select coupon matrix before this consolidation can be built and tested as an [Assessment] promotion."}]
+          [
+            "Depot Dollars are the $10 credits a Business Select member receives as part of the membership &mdash; five of them per membership year. The way the program runs today, ODP mints roughly a million individual coupons to deliver them, one batch per member, and only about a tenth of those codes are ever redeemed. The cost isn't the discount, it's the operation: a million codes to generate, distribute, expire, and reissue every year, with no easy way to change the offer once it's out.",
+            "The problem to solve is therefore not &ldquo;how do we give $10 off&rdquo; &mdash; that part is trivial. It's how to make entitlement follow the membership automatically, so a code exists only while the member is in the right contract year, and stops working the moment they aren't."
+          ],
+          [
+            "The Business Select coupon proposal answers this by moving eligibility off the coupon and onto the customer. The membership tier &mdash; <code>BS1</code>, <code>BS2</code>, <code>BS3</code>, one per contract year &mdash; is written to the shopper's <b>CL (Client) profile in Master Data by Zinrelo</b>, and the promotions simply read it. Codes stop being personal; the tier on the profile is what makes them work.",
+            {steps:[
+              "<b>Let Zinrelo own the tier, and write it to the CL entity.</b> When a member joins or renews, Zinrelo sets the tier field on their VTEX Client profile. This is the only integration point in the design, and everything downstream keys off it.",
+              "<b>Create permanent promotions, one per coupon code per membership year.</b> The proposal sizes this against an assumed five-year member lifetime: five general codes usable once per customer, one promotion behind each code, per active year &mdash; 25 promotions and 25 coupons in total. That is the whole program, replacing roughly a million minted codes.",
+              "<b>Gate each promotion with a customer cluster condition on the tier.</b> A BS2 promotion carries a cluster condition requiring <code>tier=BS2</code>, so it's visible and usable only to members currently in their second year. A first-year member sees the BS1 set and nothing else &mdash; not because the codes were withheld from them, but because the condition doesn't match.",
+              "<b>Use shared codes with a per-customer cap instead of serialized ones.</b> Because the cluster already restricts <i>who</i> can redeem, the code itself no longer needs to be unique per shopper. Setting <code>maxUsagePerClient</code> to 1 enforces &ldquo;once per member,&rdquo; which is what the serialized batch was really there to do. It also opens the door to memorable marketing codes &mdash; the demo build runs <code>VIP10</code>, <code>MEMBER10</code>, and <code>ACCESS10</code> alongside the generated ones.",
+              "<b>Make the promotions cumulative.</b> Depot Dollars are a membership benefit, not a competing offer, so each promotion is set cumulative and stacks on whatever sale or member price is already on the cart rather than displacing it.",
+              "<b>Stop expiring coupons &mdash; expire the tier.</b> This is the pivot that makes the model work operationally. The promotions never expire; the tier does. At the end of the contract year the subscription app updates the member to the next tier or removes it entirely, and access flips on its own. Revoking a member's benefit is a single profile change, not a code sweep.",
+              "<b>Key the cycle to the Zinrelo customer year, not the contract year.</b> The proposal flags the churn-and-return case: a member who spends all five first-year coupons, lapses, and later re-subscribes would re-enter the BS1 cycle with nothing left to redeem. Counting cumulative customer years in Zinrelo &mdash; so a returning member resumes at year 3 rather than restarting at year 1 &mdash; avoids handing them an empty benefit."
+            ]},
+            "One open item carries over from the proposal: for in-store redemption, ODP still needs to confirm whether applying the coupon through the cart simulation call is enough to activate the promotion from POS. That's the same question raised under Guest / POS checkout redemption in Requirement #3, and it's worth resolving once for both."
+          ],
+          {status:"tested", statusLabel:"Demo build in odpdev", cases:[
+            {title:"Test case 1 &mdash; First-year member (BS1)", vtexName:"Promotion 1st Year &mdash; BS1", adminUrl:"https://odpdev.myvtex.com/admin/promotions/c4815e41-8792-4922-93e9-f90f2e85e232",
+             steps:[
+               "Note this demo lives in the <b>odpdev</b> account, not officedepotdev &mdash; it predates the [Assessment] batch.",
+               "Open a cart in odpdev with the BS1-tagged profile <b>felipe.dias+bs1@vtex.com</b> and add any qualifying item.",
+               "Apply one of the tier's codes &mdash; a generated one such as <b>bs1-alm66knz67mywmv</b>, or a marketing code such as <b>VIP10</b>.",
+               "Expected result: $10 off, stacking on top of any other active discount.",
+               "Negative check &mdash; eligibility: apply the same code with a profile that isn't tagged BS1 and confirm it's rejected.",
+               "Negative check &mdash; reuse: apply the same code again with the same profile and confirm the per-customer limit blocks it."
+             ]},
+            {title:"Test case 2 &mdash; Second-year member (BS2)", vtexName:"Promotion 2nd Year &mdash; BS2", adminUrl:"https://odpdev.myvtex.com/admin/promotions/1354130c-9a0b-44bb-83b5-1b21a079e703",
+             steps:[
+               "Open a cart in odpdev with the BS2-tagged profile <b>felipe.dias@vtex.com</b>.",
+               "Apply <b>bs2-644j2a4exzv9pvn</b> or the marketing code <b>ELITE10</b>.",
+               "Expected result: $10 off for the second-year tier.",
+               "Cross-tier check: apply a BS1 code with this BS2 profile and confirm it doesn't apply &mdash; this is the behavior that lets the tier, rather than the code, control the membership year."
+             ]}
+          ]}]
       ]
     },
     { n:5, title:"BOPIS &amp; Location-Based Promotions", flag:"native",
@@ -620,17 +674,50 @@
            ],
            cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}],
         ["Teacher &amp; Military discounts (ID.me)","custom",
-          "ODP currently verifies teacher and military eligibility through ID.me before granting a discount &mdash; a use case that hasn't yet been mapped onto a VTEX promotion condition.",
-          "Not yet addressed in the promotions blueprint. Mapping ID.me's eligibility verification to a VTEX-native condition &mdash; likely a customer cluster populated after successful ID.me verification &mdash; still needs to be scoped.",
-          {status:"open", note:"Not documented and not in this assessment batch &mdash; still to be scoped."}],
-        ["Price match","custom",
-          "A price-match policy lets a shopper request that ODP match a lower price found elsewhere &mdash; a customer-service-driven discount rather than a broadly advertised promotion.",
-          "Not yet documented in the promotions blueprint; the mechanism for applying a one-off, agent-driven price match still needs to be scoped in discovery.",
-          {status:"open", note:"Not documented and not in this assessment batch &mdash; still to be scoped."}],
+          "ODP verifies teacher and military eligibility through ID.me before granting a discount. The verification itself is an identity question that ODP has already solved outside VTEX &mdash; the open question was only how that verified status turns into a price the shopper actually sees.",
+          [
+            "ID.me stays where it is. The integration writes the verification result back as a <b>field on the shopper's CL (Client) record in Master Data</b>, and from that point on this is the exact same customer-cluster promotion ODP already has running for employee discounts &mdash; a pattern validated in this assessment, not a new one to design.",
+            {steps:[
+              "<b>Add the eligibility field to the CL entity.</b> Create a field on the Client profile to hold the verified status &mdash; for example <code>idmeGroup</code> with values such as <code>teacher</code> or <code>military</code>, alongside a verification timestamp so expiry can be enforced later. One field can serve both audiences, which keeps the cluster conditions readable.",
+              "<b>Have the ID.me integration write that field.</b> On a successful verification, the integration updates the shopper's CL document through the Master Data API. This is the only custom piece of the whole capability, and it runs once per shopper rather than on every cart.",
+              "<b>Create one promotion per audience, gated by a cluster condition.</b> A Regular promotion scoped to the eligible categories, with a customer-cluster condition requiring the CL field to match the verified value. VTEX reads the field from the shopper's profile at cart time, so an eligible shopper sees the discount automatically once identified &mdash; no coupon needed, though a code can be layered on if the business wants an explicit opt-in.",
+              "<b>Copy the employee promotions as the template.</b> <i>[Assessment] E01 Employee Services 30 Percent</i> already implements this end to end: it gates on a Master Data attribute of the Client record, scopes the benefit to specific categories, and is set non-cumulative so it can't stack with the other discount tiers. The teacher and military promotions are the same build with a different cluster value and category scope. <i>[Assessment] P02 Reward Member Pricing</i> shows the same gating applied to a price table, if ODP would rather serve a member price than a percentage off.",
+              "<b>Decide the stacking rule up front.</b> Teacher and military discounts almost always need to be exclusive against employee and member offers, which means leaving them non-cumulative and letting promotion competition award the shopper the single best of the overlapping offers.",
+              "<b>Plan for re-verification.</b> ID.me eligibility expires. Whatever process clears or refreshes the CL field on expiry should be defined alongside the integration, because the promotion will keep honoring a stale flag for as long as it sits on the profile."
+            ]},
+            "So the split is clean: ID.me and the Master Data write are the integration, and the discount itself is a native cluster promotion ODP is already operating for employees."
+          ],
+          {status:"open", note:"No teacher/military promotion exists in the assessment batch yet, but the mechanic is already proven &mdash; test the pattern through <a class=\"admin-link-full\" href=\"https://officedepotdev.myvtex.com/admin/promotions/31488b64-a32d-434b-a740-5820a446220c\" target=\"_blank\" rel=\"noopener\">[Assessment] E01 Employee Services 30 Percent</a>, under Requirement #6. Building the ID.me version is a matter of duplicating it against the new CL field."}],
+        ["Price match","native",
+          "A price-match policy lets a shopper request that ODP match a lower price found elsewhere &mdash; a customer-service-driven discount rather than a broadly advertised promotion. It is granted one shopper at a time, after an agent reviews the competitor's price, so it can never be a published offer sitting in the catalog.",
+          [
+            "Price match is owned by customer service, and the VTEX side of it is the <b>CX Platform</b> plus a standard coupon-gated promotion &mdash; no custom discount engine. The agent (human or the CX Platform's autonomous agent) validates the request against policy and then issues a single-use code the shopper applies in their own cart, which keeps the discount auditable and tied to an identified customer.",
+            {steps:[
+              "<b>Write the policy as promotion boundaries first.</b> Decide the maximum discount the match may reach, which categories are eligible, and how long a matched price stays valid. These become the ceiling and scope of the promotion template, so an agent can never grant more than the policy allows.",
+              "<b>Create one Regular promotion as the price-match template.</b> Scope it to the eligible categories, set it non-cumulative so a matched price can't stack on top of another active discount, and cap it with <code>maxNumberOfAffectedItems</code> so a single approval discounts one unit rather than a whole cart line.",
+              "<b>Issue a serialized, single-use coupon per approval.</b> The same serialized-coupon mechanic already validated under Requirement #3: generate the code against the template promotion with <code>maxUsage</code> and <code>maxUsagePerClient</code> set to 1. Codes can be pre-minted in a batch for the service team to draw from, or generated on demand through the Promotions API at the moment the agent approves the match.",
+              "<b>Hand the request to the CX Platform.</b> VTEX CX Platform connects natively to the catalog, checkout, OMS, and promotions, so the price-match conversation happens where the agent already is &mdash; webchat, WhatsApp, or email. Its Promotions Agent can look up the item and apply the offer inside the conversation, and hand off to a human when the request falls outside policy.",
+              "<b>Handle post-purchase matches as an order change.</b> If the shopper already checked out, the match is a partial refund or order edit through the OMS rather than a new coupon &mdash; same policy, different module.",
+              "<b>Track it.</b> Because every approval is a distinct coupon on one template promotion, coupon usage reporting gives the business price-match volume, average matched amount, and the SKUs being matched most often &mdash; which is usually the real signal the pricing team wants out of this program."
+            ]},
+            "Net result: the judgment call stays with customer service, where it belongs, while the discount itself is applied by a native, fully auditable VTEX promotion."
+          ],
+          {hide:true}],
         ["Trade-in discounts","custom",
-          "ODP offers a trade-in program where a shopper can receive credit toward a new purchase by turning in an old device &mdash; a mechanic that today lives entirely within the in-store retail flow.",
-          "Flagged Retail Only in the blueprint: ODP's existing in-store system (IPS) continues to handle trade-in valuation and credit, and no VTEX promotions integration is planned for it.",
-          {status:"open", note:"Listed under &ldquo;Not in this VTEX batch&rdquo; &mdash; Retail-only, owned by IPS. There is no VTEX promotion to test."}]
+          "ODP offers a trade-in program where a shopper can receive credit toward a new purchase by turning in an old device &mdash; a mechanic that today lives entirely within the in-store retail flow, where the device can be inspected and valued.",
+          [
+            "The blueprint flags this Retail Only: ODP's in-store system (IPS) continues to own trade-in valuation and credit, and no VTEX promotions integration is planned for it today. That said, if ODP ever wants the credit to be spendable online, VTEX already has a native home for it &mdash; and it isn't the promotions engine.",
+            "<b>Trade-in credit is money, not a discount.</b> Its value is decided per device by an appraisal, it has to survive across sessions and orders, and it may be spent partially. Those are the properties of a stored balance, which is why the native fit is a <b>gift card</b> (VTEX's store credit, a payment method) or <b>loyalty points</b> through the rewards program &mdash; not a promotion, which computes a discount from cart contents at checkout time.",
+            {steps:[
+              "<b>Keep valuation where it already is.</b> IPS (or whichever appraisal system owns it) decides what the traded-in device is worth. VTEX has no opinion on that and shouldn't.",
+              "<b>Materialize the approved value as a gift card.</b> Once the appraisal is approved, create a gift card for the shopper's profile through the GiftCard API and credit the appraised amount to it. Cards can be set restricted to the owner, reloadable, and reusable, so a partially spent balance stays available for the next purchase.",
+              "<b>Make the balance appear at checkout without a code.</b> A gift card created with <code>relationName</code> set to <code>loyalty_program</code> is returned automatically to the identified shopper at checkout, so the trade-in credit simply shows up as available balance rather than requiring the shopper to key in a voucher number. One automatic card per customer is supported natively; multiple simultaneous balances would require an external gift card provider through the Giftcard Hub.",
+              "<b>Or route it through rewards instead.</b> If ODP would rather trade-ins earn loyalty currency than store credit, the same appraised value can be posted as points into the loyalty program, and the shopper redeems them the same way they redeem any other reward &mdash; which keeps a single balance in front of the customer instead of two.",
+              "<b>Layer a promotion only for the campaign part.</b> Where the business wants a trade-in <i>bonus</i> &mdash; &ldquo;trade in any laptop this month and get an extra $50&rdquo; &mdash; that incremental piece is a normal promotion or an extra gift card credit, cleanly separated from the appraised base value."
+            ]},
+            "The distinction worth carrying into discovery: the promotions engine is the wrong tool for trade-in value because the amount originates outside the cart, but gift cards and rewards points give ODP a native, ledgered way to spend that value online whenever the program expands beyond retail."
+          ],
+          {hide:true}]
       ]
     },
     { n:7, title:"Services Pricing &amp; CPD Configurator Pricing", flag:"native",
@@ -737,8 +824,11 @@
     "Guest / POS checkout redemption":[PUBLIC_DOCS.coupons],
     "Member-exclusive pricing (Reward Member)":[PUBLIC_DOCS.userPriceTables],
     "Business Select (BizSelect) discount tiers":[PUBLIC_DOCS.pricing, PUBLIC_DOCS.userPriceTables],
-    "BLP / offer stacking logic":[PUBLIC_DOCS.competition],
-    "Service Depot Dollars (BizSelect year-1 offer)":[PUBLIC_DOCS.regular, PUBLIC_DOCS.customerCluster],
+    "BLP / offer stacking logic":[PUBLIC_DOCS.competition, PUBLIC_DOCS.promotions],
+    "Service Depot Dollars (BizSelect year-1 offer)":[PUBLIC_DOCS.regular, PUBLIC_DOCS.customerCluster, PUBLIC_DOCS.coupons],
+    "Teacher &amp; Military discounts (ID.me)":[PUBLIC_DOCS.customerCluster, PUBLIC_DOCS.employeeBenefits],
+    "Price match":[PUBLIC_DOCS.cxPlatform, PUBLIC_DOCS.cxAgents, PUBLIC_DOCS.couponsApi],
+    "Trade-in discounts":[PUBLIC_DOCS.giftCard, PUBLIC_DOCS.giftCardApi],
     "Employee &mdash; Services 30%":[PUBLIC_DOCS.employeeBenefits, PUBLIC_DOCS.customerCluster],
     "Employee &mdash; Supplies 20%":[PUBLIC_DOCS.employeeBenefits, PUBLIC_DOCS.customerCluster],
     "Employee &mdash; Technology 10%":[PUBLIC_DOCS.employeeBenefits, PUBLIC_DOCS.customerCluster],
@@ -810,6 +900,7 @@
           '<p class="test-open-note">'+note+'</p>' +
         '</div>';
     }
+    var statusLabel = test.statusLabel || 'Validated in officedepotdev';
     if (test.cases && test.cases.length) {
       var casesHtml = test.cases.map(function(testCase){
         var caseSteps = (testCase.steps||[]).map(function(s){return '<li>'+s+'</li>';}).join('');
@@ -828,7 +919,7 @@
           '</section>';
       }).join('');
       return '<div class="test-card">' +
-          '<span class="test-status tested">Validated in officedepotdev</span>' +
+          '<span class="test-status tested">'+statusLabel+'</span>' +
           '<h3>How to test this</h3>' +
           casesHtml +
         '</div>';
@@ -842,7 +933,7 @@
     }
     var cautionHtml = test.caution ? '<p class="test-caution">&#9888; '+test.caution+'</p>' : '';
     return '<div class="test-card">' +
-        '<span class="test-status tested">Validated in officedepotdev</span>' +
+        '<span class="test-status tested">'+statusLabel+'</span>' +
         '<h3>How to test this</h3>' +
         '<div class="test-name">'+test.vtexName+'</div>' +
         '<div class="admin-link-row"><span class="label">Admin record</span><a class="admin-link-full" href="'+test.adminUrl+'" target="_blank" rel="noopener">'+test.adminUrl+'</a></div>' +
@@ -850,6 +941,15 @@
         '<ol class="test-steps-list">'+stepsHtml+'</ol>' +
         cartHtml +
       '</div>';
+  }
+
+  function renderRich(value){
+    if (!(value instanceof Array)) return '<p>'+value+'</p>';
+    return value.map(function(part){
+      if (typeof part === 'string') return '<p>'+part+'</p>';
+      if (part.steps) return '<ol class="howto">'+part.steps.map(function(s){return '<li>'+s+'</li>';}).join('')+'</ol>';
+      return '';
+    }).join('');
   }
 
   function renderPanel(){
@@ -873,11 +973,11 @@
         '<div class="text-col">' +
           '<div class="block">' +
             '<h3>Business Scenario</h3>' +
-            '<p>'+scenario+'</p>' +
+            renderRich(scenario) +
           '</div>' +
           '<div class="block config">' +
             '<h3>How It&rsquo;s Configured in VTEX</h3>' +
-            '<p>'+config+'</p>' +
+            renderRich(config) +
           '</div>' +
           '<div class="block">' +
             '<h3>Documentation</h3>' +
