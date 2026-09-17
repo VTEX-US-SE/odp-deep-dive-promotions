@@ -74,7 +74,8 @@
   .l1-btn[aria-pressed="true"] .n{color:rgba(255,255,255,.75);}
   .l1-btn[aria-pressed="true"] .t{color:#fff;}
   .l1-btn .flag{font-size:9.5px; text-transform:uppercase; letter-spacing:.04em; margin-top:1px;}
-  .l1-btn .flag.native{color:var(--native);}
+  .l1-btn .flag.native,
+  .l1-btn .flag.mostly{color:var(--native);}
   .l1-btn .flag.custom{color:var(--custom);}
   .l1-btn[aria-pressed="true"] .flag{color:rgba(255,255,255,.85) !important;}
 
@@ -574,34 +575,36 @@
       docs:[PUBLIC_DOCS.userPriceTables, PUBLIC_DOCS.priceTableBenefit],
       caps:[
         ["Back in Rewards","native",
-          "ODP's loyalty program rewards shoppers with points or dollars back on qualifying purchases &mdash; Back in Rewards credits money back to a shopper's loyalty balance based on what's in their cart. VTEX's native equivalent is a Regular promotion with a percentage reward value, not a cart discount.",
-          "G04 is configured with <code>percentualRewardValue=10</code> on SKU 3919316 and <code>orderStatusRewardValue=payment-approved</code>. Qualification is only the first step: actual issuance happens after payment approval, and redemption is a later Gift Card / store-credit payment flow. A persisted rule alone is not evidence that a Gift Card was issued. The fields persisted, but Checkout did not expose a stable qualifying native reward benefit, so the rule is held inactive pending account-level reward issuance support.",
+          "ODP's loyalty program rewards shoppers with points or dollars back on qualifying purchases &mdash; Back in Rewards credits money back to a shopper's loyalty balance based on what's in their cart. VTEX's native equivalent is a Regular promotion with a percentage reward value, not a cart discount. The earn is not tied to a dedicated email or cluster: any identified shopper who completes a qualifying first purchase should receive the credit, and can redeem it on a later order.",
+          "G04 is configured with <code>percentualRewardValue=10</code> on SKU 3919316 and <code>orderStatusRewardValue=payment-approved</code>, with no customer-cluster or email condition. Qualification is only the first step: actual issuance happens after payment approval, and redemption is a later Gift Card / store-credit payment flow on a subsequent cart. A persisted rule alone is not evidence that a Gift Card was issued. The fields persisted, but Checkout did not expose a stable qualifying native reward benefit, so the rule is held inactive pending account-level reward issuance support.",
           {status:"tested", statusLabel:"Configured in officedepotdev (inactive)", vtexName:"[Assessment] G04 Back in Rewards Item", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/45e4e72b-325d-423c-a0c5-8cbaf3791d5f",
            caution:"G04 is inactive. Do not activate it until native reward issuance is confirmed in this account. Isolated checkout already proved the inactive rule does not leak into ordinary carts.",
            steps:[
-             "Review the Admin record: 10% item reward, issued when the order reaches payment-approved.",
-             "When issuance is supported, set the profile to <b>assessment.g04.reward@officedepot.example</b>, add SKU 3919316, place the order, and confirm the reward posts after payment approval.",
-             "Redemption is a later checkout payment using the issued credit &mdash; not a second promotion."
+             "Review the Admin record: 10% item reward, issued when the order reaches payment-approved &mdash; not restricted to a specific email.",
+             "When issuance is supported, add SKU 3919316 as an identified shopper, place the order, and confirm the reward posts after payment approval.",
+             "On a later cart, redeem the issued credit as a Gift Card / store-credit payment. Any identified shopper who earned it should be able to redeem; it is not gated to a test email."
            ],
            cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}],
         ["Bonus Rewards","native",
-          "A companion mechanic to Back in Rewards &mdash; extra loyalty credit awarded on top of the standard earn rate, typically to incentivize a specific category or campaign. Natively this is a Regular promotion with a fixed (nominal) reward value, scoped to a category.",
-          "G05 is configured with <code>nominalRewardValue=5</code> on the Office Supplies category <code>56201019</code>, issued at payment-approved. Configuration persisted, but qualification and issuance were not observable in Checkout, so the rule stays inactive. Same split as G04: the promotion qualifies; Gift Card issuance and later redemption are separate steps.",
+          "A companion mechanic to Back in Rewards &mdash; extra loyalty credit awarded on top of the standard earn rate, typically to incentivize a specific category or campaign. Natively this is a Regular promotion with a fixed (nominal) reward value, scoped to a category. Same as the item earn: it should fire for whoever buys the category, not for a named email.",
+          "G05 is configured with <code>nominalRewardValue=5</code> on the Office Supplies category <code>56201019</code>, issued at payment-approved, with no email or cluster gate. Configuration persisted, but qualification and issuance were not observable in Checkout, so the rule stays inactive. Same split as G04: the promotion qualifies on the cart; Gift Card issuance happens after the first purchase is paid, and redemption is a later payment step.",
           {status:"tested", statusLabel:"Configured in officedepotdev (inactive)", vtexName:"[Assessment] G05 Bonus Rewards Category", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/1582ed31-97e6-4471-8c8a-838b6dc88c5d",
            caution:"G05 is inactive. Configuration is only the qualification step; do not treat a persisted rule as proof that a Gift Card was issued.",
            steps:[
-             "Review the Admin record: US$5 category bonus on Office Supplies, issued at payment-approved.",
-             "When issuance is supported, set the profile to <b>assessment.g05.reward@officedepot.example</b>, add a qualifying Office Supplies item, and confirm the US$5 credit after payment approval."
+             "Review the Admin record: US$5 category bonus on Office Supplies, issued at payment-approved, with no customer-email condition.",
+             "When issuance is supported, add a qualifying Office Supplies item as an identified shopper and confirm the US$5 credit after payment approval.",
+             "Redeem on a later order using the issued credit. Eligibility follows the shopper who bought, not a dedicated profile."
            ],
            cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}],
         ["Rewards redemption (Buy X category/item/amount, get Y back)","native",
-          "&ldquo;Buy this category, item, or spend this amount, get value back&rdquo; &mdash; a flexible loyalty mechanic that ties a reward to specific purchase behavior. The assessment models the spend-amount variant natively: a Regular promotion with a nominal reward and a cart floor.",
-          "G06 is configured with a US$100 cart floor, <code>nominalRewardValue=10</code>, and issuance at payment-approved. Qualification persisted; issuance was not observable in Checkout, so the rule is inactive. Redeeming the credit later is the Gift Card payment flow, not a second promotions rule.",
+          "&ldquo;Buy this category, item, or spend this amount, get value back&rdquo; &mdash; a flexible loyalty mechanic that ties a reward to specific purchase behavior. The assessment models the spend-amount variant natively: a Regular promotion with a nominal reward and a cart floor. After that first qualifying purchase is paid, the shopper should be able to redeem the credit; the rule itself must not be limited to a specific email.",
+          "G06 is configured with a US$100 cart floor, <code>nominalRewardValue=10</code>, and issuance at payment-approved &mdash; cart conditions only, no cluster. Qualification persisted; issuance was not observable in Checkout, so the rule is inactive. Redeeming the credit later is the Gift Card payment flow, not a second promotions rule and not an email-gated coupon.",
           {status:"tested", statusLabel:"Configured in officedepotdev (inactive)", vtexName:"[Assessment] G06 Rewards Spend Amount", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/b893fb3d-3df1-4739-be18-22e587a96729",
            caution:"G06 is inactive. Isolated checkout already proved the inactive reward scenarios do not leak into ordinary carts.",
            steps:[
-             "Review the Admin record: US$10 back on a cart of at least US$100, issued at payment-approved.",
-             "When issuance is supported, set the profile to <b>assessment.g06.reward@officedepot.example</b>, build a $100+ cart, place the order, and confirm the credit after payment approval."
+             "Review the Admin record: US$10 back on a cart of at least US$100, issued at payment-approved, with no email restriction.",
+             "When issuance is supported, build a $100+ cart as any identified shopper, place the order, and confirm the credit after payment approval.",
+             "On a subsequent cart, redeem the credit as store credit / Gift Card payment."
            ],
            cart:[{label:"Add SKU 9999060 (clears $100)", url:cart([{id:9999060,qty:1}])}]}],
         ["Member-exclusive pricing (Reward Member)","native",
@@ -649,15 +652,14 @@
             "The problem to solve is therefore not &ldquo;how do we give $10 off&rdquo; &mdash; that part is trivial. It's how to make entitlement follow the membership automatically, so a code exists only while the member is in the right contract year, and stops working the moment they aren't."
           ],
           [
-            "The Business Select coupon proposal answers this by moving eligibility off the coupon and onto the customer. The membership tier &mdash; <code>BS1</code>, <code>BS2</code>, <code>BS3</code>, one per contract year &mdash; is written to the shopper's <b>CL (Client) profile in Master Data by Zinrelo</b>, and the promotions simply read it. Codes stop being personal; the tier on the profile is what makes them work.",
+            "The answer is to move eligibility off the coupon and onto the customer. The membership tier &mdash; <code>BS1</code>, <code>BS2</code>, <code>BS3</code>, one per contract year &mdash; is written to the shopper's <b>CL (Client) profile in Master Data</b>, and the promotions simply read it. Codes stop being personal; the tier on the profile is what makes them work.",
             {steps:[
-              "<b>Let Zinrelo own the tier, and write it to the CL entity.</b> When a member joins or renews, Zinrelo sets the tier field on their VTEX Client profile. This is the only integration point in the design, and everything downstream keys off it.",
-              "<b>Create permanent promotions, one per coupon code per membership year.</b> The proposal sizes this against an assumed five-year member lifetime: five general codes usable once per customer, one promotion behind each code, per active year &mdash; 25 promotions and 25 coupons in total. That is the whole program, replacing roughly a million minted codes.",
+              "<b>Write the tier to the CL entity when the member joins or renews.</b> The field on the VTEX Client profile is the only integration point in the design, and everything downstream keys off it.",
+              "<b>Create permanent promotions, one per coupon code per membership year.</b> Size this against an assumed five-year member lifetime: five general codes usable once per customer, one promotion behind each code, per active year &mdash; 25 promotions and 25 coupons in total. That is the whole program, replacing roughly a million minted codes.",
               "<b>Gate each promotion with a customer cluster condition on the tier.</b> A BS2 promotion carries a cluster condition requiring <code>tier=BS2</code>, so it's visible and usable only to members currently in their second year. A first-year member sees the BS1 set and nothing else &mdash; not because the codes were withheld from them, but because the condition doesn't match.",
               "<b>Use shared codes with a per-customer cap instead of serialized ones.</b> Because the cluster already restricts <i>who</i> can redeem, the code itself no longer needs to be unique per shopper. Setting <code>maxUsagePerClient</code> to 1 enforces &ldquo;once per member,&rdquo; which is what the serialized batch was really there to do. It also opens the door to memorable marketing codes &mdash; the demo build runs <code>VIP10</code>, <code>MEMBER10</code>, and <code>ACCESS10</code> alongside the generated ones.",
               "<b>Make the promotions cumulative.</b> Depot Dollars are a membership benefit, not a competing offer, so each promotion is set cumulative and stacks on whatever sale or member price is already on the cart rather than displacing it.",
-              "<b>Stop expiring coupons &mdash; expire the tier.</b> This is the pivot that makes the model work operationally. The promotions never expire; the tier does. At the end of the contract year the subscription app updates the member to the next tier or removes it entirely, and access flips on its own. Revoking a member's benefit is a single profile change, not a code sweep.",
-              "<b>Key the cycle to the Zinrelo customer year, not the contract year.</b> The proposal flags the churn-and-return case: a member who spends all five first-year coupons, lapses, and later re-subscribes would re-enter the BS1 cycle with nothing left to redeem. Counting cumulative customer years in Zinrelo &mdash; so a returning member resumes at year 3 rather than restarting at year 1 &mdash; avoids handing them an empty benefit."
+              "<b>Stop expiring coupons &mdash; expire the tier.</b> This is the pivot that makes the model work operationally. The promotions never expire; the tier does. At the end of the contract year the member is updated to the next tier or the tier is removed, and access flips on its own. Revoking a member's benefit is a single profile change, not a code sweep."
             ]},
             "One open item carries over from the proposal: for in-store redemption, ODP still needs to confirm whether applying the coupon through the cart simulation call is enough to activate the promotion from POS. That's the same question raised under Guest / POS checkout redemption in Requirement #3, and it's worth resolving once for both."
           ],
@@ -822,10 +824,13 @@
           "ODP sells merchandise and gift cards specifically for services &mdash; configurable by category, class, or individual SKU &mdash; a meaningful part of print &amp; copy service revenue.",
           "Not yet covered in the promotions blueprint; how these configurable service gift cards would be modeled as VTEX promotions or price tables still needs to be scoped.",
           {status:"open", note:"Not documented and not in this assessment batch &mdash; still to be scoped."}],
-        ["CPD pricing with configurator","custom",
+        ["CPD pricing with configurator","native",
           "Copy/Print/Document (CPD) services are often priced through a configurator &mdash; the final price depends on choices the shopper makes, like paper stock, binding, or quantity, rather than a flat SKU price.",
-          "Not yet documented; configurator-driven CPD pricing, and how a resulting price interacts with the promotions engine, still needs to be scoped in discovery.",
-          {status:"open", note:"Not documented and not in this assessment batch &mdash; still to be scoped."}]
+          [
+            "Configurator output still lands as SKUs (or SKU variations) in the cart, so pricing is owned by the <b>Pricing module</b>, not by a one-off CPD engine. Quantity breaks (&ldquo;buy more together&rdquo;) are minimum-quantity prices on a price table or a progressive / Buy More Save More promotion. Location, channel, or member differences are additional price tables on the same SKUs.",
+            "Once those list and quantity prices exist, every promotion already in this playbook can apply to the configured item the same way it would to any other SKU &mdash; coupons, bundles, BOPIS, employee clusters, shipping offers, MAP tables. The configurator chooses the SKU; Pricing and Promotions do the rest."
+          ],
+          {hide:true}],
       ]
     },
     { n:8, title:"Compliance, MAP &amp; State Price Protection", flag:"custom",
@@ -874,12 +879,18 @@
            cart:[{label:"Add SKU 9999060", url:cart([{id:9999060,qty:1}])}]}],
         ["MAPPED SKU management","custom",
           "Beyond the pricing mechanism itself, ODP needs a way to flag and manage which SKUs are subject to a MAP agreement in the first place, since that list changes over time as supplier agreements change.",
-          "Not yet documented in the promotions blueprint; SKU-level MAP flagging and its ongoing management still need to be scoped alongside the MAP price table work above.",
-          {status:"open", note:"Not documented and not in this assessment batch &mdash; still to be scoped."}],
+          [
+            "The price table already hides or applies MAP once a SKU is flagged. The operational problem is keeping that flag current &mdash; which is a merchandising and compliance workflow, not a new promotions type. The fit in VTEX is a <b>CX Platform custom agent</b>: an agent with access to catalog, pricing, and promotions that operations can ask to look up whether a SKU is MAP-restricted, add or remove the MAP tag / price-table membership, and confirm the storefront will show &ldquo;See price in cart.&rdquo;",
+            "Build it in Agent Builder against the official Promotions and Product Concierge agents (or a thin catalog/pricing custom agent). Humans stay in the loop for supplier-agreement judgment; the agent does the lookup and the catalog write so the MAP list does not live in a spreadsheet outside VTEX."
+          ],
+          {hide:true}],
         ["All-state price protection plans","custom",
           "Certain states have their own price-protection regulations that ODP needs to comply with, separate from supplier MAP agreements.",
-          "Not yet documented; scoping state-by-state price protection compliance is still pending, the same way finer geographic price-list granularity is (see Requirement #2).",
-          {status:"open", note:"Not documented and not in this assessment batch &mdash; still to be scoped."}]
+          [
+            "State rules are policy, not a catalog price. Encoding fifty slightly different protection plans as promotions would be brittle. The better native surface is a <b>CX Platform custom agent</b> that knows the state-by-state policy, reads the shopper's shipping address, and then either explains the protection, applies the matching promotion or price table, or hands off to a human when the request is an exception.",
+            "Zone and ZIP promotions from Requirement #2 can still hold the actual price or discount once the agent has decided which rule applies. The agent is the decision layer; Pricing and Promotions remain the execution layer."
+          ],
+          {hide:true}]
       ]
     }
   ];
@@ -938,7 +949,10 @@
     "Free shipping":[PUBLIC_DOCS.shipping],
     "Shipping % off":[PUBLIC_DOCS.shipping],
     "Shipping $ off":[PUBLIC_DOCS.shipping],
-    "MAP pricing (&ldquo;See price in cart&rdquo;)":[PUBLIC_DOCS.pricing, PUBLIC_DOCS.priceTableBenefit]
+    "MAP pricing (&ldquo;See price in cart&rdquo;)":[PUBLIC_DOCS.pricing, PUBLIC_DOCS.priceTableBenefit],
+    "CPD pricing with configurator":[PUBLIC_DOCS.pricing, PUBLIC_DOCS.priceTableBenefit, PUBLIC_DOCS.promotions],
+    "MAPPED SKU management":[PUBLIC_DOCS.cxPlatform, PUBLIC_DOCS.cxAgents],
+    "All-state price protection plans":[PUBLIC_DOCS.cxPlatform, PUBLIC_DOCS.cxAgents]
   };
 
   var state = { topic: TOPICS[0].n, cap: TOPICS[0].caps[0][0] };
@@ -950,6 +964,15 @@
   } catch(e){}
 
   function getTopic(n){ return TOPICS.filter(function(t){ return t.n === n; })[0]; }
+  function topicMenuFlag(t){
+    var hasCustom = t.caps.some(function(c){ return c[1] === 'custom'; });
+    return hasCustom ? 'mostly' : 'native';
+  }
+  function topicMenuLabel(flag){
+    if (flag === 'mostly') return 'Mostly native';
+    if (flag === 'native') return 'Native';
+    return 'Custom build';
+  }
   function getDocumentation(topic, capability){
     return CAPABILITY_DOCS[capability[0]] || topic.docs || [PUBLIC_DOCS.promotions];
   }
@@ -960,10 +983,11 @@
       var btn = document.createElement('button');
       btn.className = 'l1-btn';
       btn.setAttribute('aria-pressed', t.n === state.topic ? 'true' : 'false');
+      var menuFlag = topicMenuFlag(t);
       btn.innerHTML =
         '<span class="n">#'+t.n+'</span>' +
         '<span class="t">'+t.title+'</span>' +
-        '<span class="flag '+t.flag+'">'+(t.flag==='native' ? 'Native' : 'Custom build')+'</span>';
+        '<span class="flag '+menuFlag+'">'+topicMenuLabel(menuFlag)+'</span>';
       btn.addEventListener('click', function(){
         state.topic = t.n;
         state.cap = t.caps[0][0];
