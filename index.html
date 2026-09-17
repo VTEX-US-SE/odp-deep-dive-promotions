@@ -378,7 +378,6 @@
           "Bundling &mdash; discounting a group of items purchased together, whether within one basket or across a shopper's broader purchase &mdash; is a mechanic ODP currently runs through its in-store systems for retail locations. The source label is POS-only / custom build; VTEX's native equivalent is a Buy Together (combo) promotion, which is what was built in the assessment account so ODP can see the same basket mechanic on the platform.",
           "Configured as a native combo: both SKUs must be in the cart, and the second SKU then receives 10% off. Eligibility is gated to the assessment profile. Removing either SKU drops the benefit, which is the behavior that distinguishes a bundle from two independent item discounts.",
           {status:"tested", vtexName:"[Assessment] G01 Bundle Buy Together Custom Build", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/0dd02f7a-19ed-4a32-8935-8cc55e02d002",
-           caution:"This is VTEX's native Buy Together equivalent of a POS-only ODP mechanic. Keep the capability labeled custom build; the assessment rule exists so the basket behavior can be validated on VTEX.",
            steps:[
              "Set the checkout profile to <b>assessment.g01.bundle@officedepot.example</b>.",
              "Click <b>Add to Cart</b> to load SKU 6028288 and SKU 664011 together.",
@@ -407,9 +406,8 @@
            ]}],
         ["State, district &amp; store-level pricing","native",
           "Beyond broad zones, ODP may eventually want pricing that varies even more narrowly &mdash; by state, by district, or down to an individual franchise store, the way many national retailers tune price by local market conditions.",
-          "The store-level version is a Regular promotion with an inclusive seller condition. Franchise accounts in VTEX are sellers, so a rule scoped to <code>idSeller=odpdev0004</code> only discounts items sold by that franchise. It is the same mechanic as zone pricing, pointed at a seller instead of a sales channel.",
+          "The store-level version is a Regular promotion with an inclusive seller condition. Franchise accounts in VTEX are sellers, so a rule scoped to <code>idSeller=odpdev0004</code> only discounts items sold by that franchise. It is the same mechanic as zone pricing, pointed at a seller instead of a sales channel. G03 is inactive: no active franchise SKU binding or usable offer was returned for the tested franchise sellers.",
           {status:"tested", statusLabel:"Configured in officedepotdev (inactive)", vtexName:"[Assessment] G03 Franchise Store Seller", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/a552f2f6-ec39-4200-9bee-ac62f6fcc280",
-           caution:"G03 is inactive on purpose. No active franchise SKU binding or usable offer was returned for the tested franchise sellers, so the rule is held back to avoid representing an untestable store promotion as live.",
            steps:[
              "When an offer exists for seller <b>odpdev0004</b>, set the checkout profile to <b>assessment.g03.store@officedepot.example</b>.",
              "Add SKU 3919316 from seller odpdev0004 and confirm G03 applies (10% off).",
@@ -576,35 +574,34 @@
       caps:[
         ["Back in Rewards","native",
           "ODP's loyalty program rewards shoppers with points or dollars back on qualifying purchases &mdash; Back in Rewards credits money back to a shopper's loyalty balance based on what's in their cart. VTEX's native equivalent is a Regular promotion with a percentage reward value, not a cart discount. The earn is not tied to a dedicated email or cluster: any identified shopper who completes a qualifying first purchase should receive the credit, and can redeem it on a later order.",
-          "G04 is configured with <code>percentualRewardValue=10</code> on SKU 3919316 and <code>orderStatusRewardValue=payment-approved</code>, with no customer-cluster or email condition. Qualification is only the first step: actual issuance happens after payment approval, and redemption is a later Gift Card / store-credit payment flow on a subsequent cart. A persisted rule alone is not evidence that a Gift Card was issued. The fields persisted, but Checkout did not expose a stable qualifying native reward benefit, so the rule is held inactive pending account-level reward issuance support.",
-          {status:"tested", statusLabel:"Configured in officedepotdev (inactive)", vtexName:"[Assessment] G04 Back in Rewards Item", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/45e4e72b-325d-423c-a0c5-8cbaf3791d5f",
-           caution:"G04 is inactive. Do not activate it until native reward issuance is confirmed in this account. Isolated checkout already proved the inactive rule does not leak into ordinary carts.",
+          "G04 was recreated without an email cluster: <code>percentualRewardValue=10</code> on SKU 3919316, <code>orderStatusRewardValue=payment-approved</code>, empty customer cluster. Any shopper who buys the SKU can earn. Qualification is only the first step: issuance happens after payment approval, and redemption is a later Gift Card payment on the same account. Checkout did not expose a stable qualifying native reward benefit, so G04 stays inactive until earn is visible at checkout or a gift card is issued after payment.",
+          {status:"tested", statusLabel:"Configured in officedepotdev (inactive)", vtexName:"[Assessment] G04 Back in Rewards Item", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/18e71736-73b1-4093-9caf-232f33988dbd",
            steps:[
-             "Review the Admin record: 10% item reward, issued when the order reaches payment-approved &mdash; not restricted to a specific email.",
-             "When issuance is supported, add SKU 3919316 as an identified shopper, place the order, and confirm the reward posts after payment approval.",
-             "On a later cart, redeem the issued credit as a Gift Card / store-credit payment. Any identified shopper who earned it should be able to redeem; it is not gated to a test email."
+             "Review the Admin record: 10% item reward on SKU 3919316, issued at payment-approved, with no email restriction.",
+             "When the rule is active, add SKU 3919316 on any identified profile &mdash; no dedicated email &mdash; and confirm G04 on the cart.",
+             "After payment approval the reward should land as a gift card and be redeemable on a later cart from the same shopper."
            ],
            cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}],
         ["Bonus Rewards","native",
           "A companion mechanic to Back in Rewards &mdash; extra loyalty credit awarded on top of the standard earn rate, typically to incentivize a specific category or campaign. Natively this is a Regular promotion with a fixed (nominal) reward value, scoped to a category. Same as the item earn: it should fire for whoever buys the category, not for a named email.",
-          "G05 is configured with <code>nominalRewardValue=5</code> on the Office Supplies category <code>56201019</code>, issued at payment-approved, with no email or cluster gate. Configuration persisted, but qualification and issuance were not observable in Checkout, so the rule stays inactive. Same split as G04: the promotion qualifies on the cart; Gift Card issuance happens after the first purchase is paid, and redemption is a later payment step.",
-          {status:"tested", statusLabel:"Configured in officedepotdev (inactive)", vtexName:"[Assessment] G05 Bonus Rewards Category", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/1582ed31-97e6-4471-8c8a-838b6dc88c5d",
-           caution:"G05 is inactive. Configuration is only the qualification step; do not treat a persisted rule as proof that a Gift Card was issued.",
+          "G05 was recreated without an email cluster and is <b>active</b>. Checkout applied the identifier on a generic cart with SKU 9999918. Configuration: <code>nominalRewardValue=5</code> on Office Supplies category <code>56201019</code>, issued at payment-approved. That is earn/qualification at checkout, not gift-card issuance; redemption is a later Gift Card payment by the same shopper.",
+          {status:"tested", vtexName:"[Assessment] G05 Bonus Rewards Category", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/aeb9c0e8-d9fb-41fa-8e01-5c806e3552c9",
            steps:[
-             "Review the Admin record: US$5 category bonus on Office Supplies, issued at payment-approved, with no customer-email condition.",
-             "When issuance is supported, add a qualifying Office Supplies item as an identified shopper and confirm the US$5 credit after payment approval.",
-             "Redeem on a later order using the issued credit. Eligibility follows the shopper who bought, not a dedicated profile."
+             "Click <b>Add to Cart</b> to load Office Supplies SKU 9999918 on any profile &mdash; no dedicated email.",
+             "Expected result: G05 should appear (US$5 category bonus, issued after payment-approved).",
+             "Negative check: add a non-Office-Supplies SKU and confirm G05 does not apply.",
+             "Issuance still waits for payment approval; redeem the gift card on a later cart from the same shopper."
            ],
-           cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}],
+           cart:[{label:"Add SKU 9999918", url:cart([{id:9999918,qty:1}])}]}],
         ["Rewards redemption (Buy X category/item/amount, get Y back)","native",
           "&ldquo;Buy this category, item, or spend this amount, get value back&rdquo; &mdash; a flexible loyalty mechanic that ties a reward to specific purchase behavior. The assessment models the spend-amount variant natively: a Regular promotion with a nominal reward and a cart floor. After that first qualifying purchase is paid, the shopper should be able to redeem the credit; the rule itself must not be limited to a specific email.",
-          "G06 is configured with a US$100 cart floor, <code>nominalRewardValue=10</code>, and issuance at payment-approved &mdash; cart conditions only, no cluster. Qualification persisted; issuance was not observable in Checkout, so the rule is inactive. Redeeming the credit later is the Gift Card payment flow, not a second promotions rule and not an email-gated coupon.",
-          {status:"tested", statusLabel:"Configured in officedepotdev (inactive)", vtexName:"[Assessment] G06 Rewards Spend Amount", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/b893fb3d-3df1-4739-be18-22e587a96729",
-           caution:"G06 is inactive. Isolated checkout already proved the inactive reward scenarios do not leak into ordinary carts.",
+          "G06 was recreated without an email cluster and is <b>active</b>. Checkout applied the identifier on a $100+ cart with no dedicated email. Configuration: US$100 cart floor, <code>nominalRewardValue=10</code>, issued at payment-approved. Redeeming later is the Gift Card payment flow, not a second promotions rule.",
+          {status:"tested", vtexName:"[Assessment] G06 Rewards Spend Amount", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/332538cf-5f06-40c9-8958-4949e26bad4d",
            steps:[
-             "Review the Admin record: US$10 back on a cart of at least US$100, issued at payment-approved, with no email restriction.",
-             "When issuance is supported, build a $100+ cart as any identified shopper, place the order, and confirm the credit after payment approval.",
-             "On a subsequent cart, redeem the credit as store credit / Gift Card payment."
+             "Click <b>Add to Cart</b> to load SKU 9999060 (clears the $100 floor) on any profile.",
+             "Expected result: G06 should appear on the cart.",
+             "Negative check: repeat below $100 and confirm G06 does not apply.",
+             "After payment approval, redeem the issued gift card on a subsequent checkout from the same shopper."
            ],
            cart:[{label:"Add SKU 9999060 (clears $100)", url:cart([{id:9999060,qty:1}])}]}],
         ["Member-exclusive pricing (Reward Member)","native",
@@ -759,9 +756,8 @@
            cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}],
         ["Subscription incentives","native",
           "ODP wants to reward shoppers who set up a recurring, auto-delivery order &mdash; ink, toner, or cleaning supplies on a subscription &mdash; with a modest ongoing discount as an incentive to subscribe rather than buy one-off.",
-          "A Regular 5% SKU discount with no coupon. Qualification is the combination of monthly <code>subscriptionData</code> plus the marketing tag <code>vtex-subscriptions</code>. That tag is the reliable Checkout signal; an ordinary cart without it must not receive R08. The promotion is active and checkout-qualified when the tag is attached. A full order-placement attempt was blocked by Checkout error CHK0082 (reCAPTCHA required) before an order, payment, or subscription ID could be created.",
+          "A Regular 5% SKU discount with no coupon. Qualification is the combination of monthly <code>subscriptionData</code> plus the marketing tag <code>vtex-subscriptions</code>. That tag is the reliable Checkout signal; an ordinary cart without it must not receive R08. The promotion is active and checkout-qualified when the tag is attached. Completing a live subscription order still requires a manual Checkout pass (reCAPTCHA / CHK0082 blocked automated placement).",
           {status:"tested", vtexName:"[Assessment] R08 Subscription Ink 5 Percent", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/a4edda4a-615d-40eb-866a-c51dcbcfcd83",
-           caution:"Cart qualification is proven. Completing a live subscription order still requires a manual Checkout pass: complete reCAPTCHA, place the order, submit one Worldpay sandbox Mastercard attempt, process the gateway callback, then verify the order and subscription in OMS and Subscriptions.",
            steps:[
              "Set the checkout profile to <b>assessment.subscription@officedepot.example</b>.",
              "Click <b>Add to Cart</b> to load SKU 3919316 (or 9999379).",
@@ -782,9 +778,16 @@
               "<b>Decide the stacking rule up front.</b> Teacher and military discounts almost always need to be exclusive against employee and member offers, which means leaving them non-cumulative and letting promotion competition award the shopper the single best of the overlapping offers.",
               "<b>Plan for re-verification.</b> ID.me eligibility expires. Whatever process clears or refreshes the CL field on expiry should be defined alongside the integration, because the promotion will keep honoring a stale flag for as long as it sits on the profile."
             ]},
-            "So the split is clean: ID.me and the Master Data write are the integration, and the discount itself is a native cluster promotion ODP is already operating for employees."
+            "The promotion is the same as employee discounts. The only difference is the integration: ID.me writes the verified flag to CL; E01 already proves the cluster-gated discount."
           ],
-          {status:"open", note:"No teacher/military promotion exists in the assessment batch yet, but the mechanic is already proven &mdash; test the pattern through <a class=\"admin-link-full\" href=\"https://officedepotdev.myvtex.com/admin/promotions/31488b64-a32d-434b-a740-5820a446220c\" target=\"_blank\" rel=\"noopener\">[Assessment] E01 Employee Services 30 Percent</a>, under Requirement #6. Building the ID.me version is a matter of duplicating it against the new CL field."}],
+          {status:"tested", vtexName:"[Assessment] E01 Employee Services 30 Percent", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/31488b64-a32d-434b-a740-5820a446220c",
+           steps:[
+             "This is the employee template. A teacher or military promotion is the same rule with a different CL field. The only extra work is the ID.me integration that writes that field.",
+             "Click <b>Add to Cart</b> to load SKU 9997782 (a Services item).",
+             "Log in with an employee email ending in @theodpcorp.com and apply coupon code <b>assess-emp30</b>.",
+             "Expected result: 30% off. Negative check: an office-supply item in the same cart should not receive this 30%."
+           ],
+           cart:[{label:"Add SKU 9997782", url:cart([{id:9997782,qty:1}])}]}],
         ["Price match","native",
           "A price-match policy lets a shopper request that ODP match a lower price found elsewhere &mdash; a customer-service-driven discount rather than a broadly advertised promotion. It is granted one shopper at a time, after an agent reviews the competitor's price, so it can never be a published offer sitting in the catalog.",
           [
