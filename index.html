@@ -199,6 +199,7 @@
     customerCluster: ["Creating a promotion for a customer cluster", "https://help.vtex.com/en/docs/tutorials/creating-promotion-for-a-customer-cluster"],
     employeeBenefits: ["Configuring employee benefits with customer clusters", "https://help.vtex.com/en/docs/tutorials/configure-employee-benefits-using-master-data-clusters"],
     subscription: ["Creating a subscription promotion", "https://help.vtex.com/en/docs/tutorials/creating-a-subscription-promotion"],
+    reward: ["Regular promotion with reward value", "https://help.vtex.com/en/docs/tutorials/regular-promotion-with-reward-value"],
     shipping: ["Configuring shipping promotions", "https://help.vtex.com/en/docs/tutorials/configuring-shipping-promotions"],
     promotionsApi: ["Promotions & Taxes API overview", "https://developers.vtex.com/docs/guides/rates-and-benefits-api-overview"],
     cxPlatform: ["VTEX CX Platform: overview", "https://help.vtex.com/docs/tutorials/vtex-cx-platform-overview"],
@@ -206,15 +207,15 @@
     giftCard: ["Setting up gift cards", "https://help.vtex.com/docs/tutorials/gift-card"],
     giftCardApi: ["Managing VTEX gift cards with the GiftCard API", "https://developers.vtex.com/docs/guides/managing-vtex-gift-cards"]
   };
-  var CART_BASE = "https://officedepotdev.myvtex.com/checkout/cart/add?sc=2&redirect=true&";
+  var CART_HOST = "https://officedepotdev.myvtex.com/checkout/cart/add?";
 
-  function cart(items){
-    // items: [{id, qty}]
-    var parts = [];
+  function cart(items, opts){
+    opts = opts || {};
+    var parts = ["sc="+(opts.sc || 2), "redirect=true"];
     items.forEach(function(it){
-      parts.push("sku="+it.id+"&qty="+it.qty+"&seller=1");
+      parts.push("sku="+it.id+"&qty="+it.qty+"&seller="+(it.seller || 1));
     });
-    return CART_BASE + parts.join("&");
+    return CART_HOST + parts.join("&");
   }
 
   var TOPICS = [
@@ -373,9 +374,17 @@
           "VTEX applies promotions in a predefined order by effect type: progressive discounts first; then percentage and fixed-amount price discounts; bundles and maximum unit prices; shipping discounts; gifts; formulas; surcharges; and reward amounts. Within the same type, promotions are ordered by discount value, prioritizing the greatest discount. Non-combinable promotions compete under the account's competition strategy (scenario-based by default), while eligible combinable promotions are applied afterward to the already-discounted amount.",
           {hide:true}],
         ["Bundle discounts (single basket &amp; group)","custom",
-          "Bundling &mdash; discounting a group of items purchased together, whether within one basket or across a shopper's broader purchase &mdash; is a mechanic ODP currently runs through its in-store systems for retail locations.",
-          "ODP's blueprint marks this Retail Only: the existing in-store pricing system (IPS) continues to own bundling end-to-end, and no VTEX promotions integration is planned for this mechanic at this time.",
-          {status:"open", note:"Confirmed out of this assessment batch &mdash; listed under &ldquo;Not in this VTEX batch&rdquo; since it's Retail-only and owned by IPS. There is no VTEX promotion to test."}]
+          "Bundling &mdash; discounting a group of items purchased together, whether within one basket or across a shopper's broader purchase &mdash; is a mechanic ODP currently runs through its in-store systems for retail locations. The source label is POS-only / custom build; VTEX's native equivalent is a Buy Together (combo) promotion, which is what was built in the assessment account so ODP can see the same basket mechanic on the platform.",
+          "Configured as a native combo: both SKUs must be in the cart, and the second SKU then receives 10% off. Eligibility is gated to the assessment profile. Removing either SKU drops the benefit, which is the behavior that distinguishes a bundle from two independent item discounts.",
+          {status:"tested", vtexName:"[Assessment] G01 Bundle Buy Together Custom Build", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/0dd02f7a-19ed-4a32-8935-8cc55e02d002",
+           caution:"This is VTEX's native Buy Together equivalent of a POS-only ODP mechanic. Keep the capability labeled custom build; the assessment rule exists so the basket behavior can be validated on VTEX.",
+           steps:[
+             "Set the checkout profile to <b>assessment.g01.bundle@officedepot.example</b>.",
+             "Click <b>Add to Cart</b> to load SKU 6028288 and SKU 664011 together.",
+             "Expected result: the G01 promotion ID should appear in the cart's price tags or rate-and-benefits identifiers, and the second SKU should show 10% off.",
+             "Negative check: remove either SKU and confirm G01 disappears."
+           ],
+           cart:[{label:"Add SKU 6028288 + 664011", url:cart([{id:6028288,qty:1},{id:664011,qty:1}])}]}],
       ]
     },
     { n:2, title:"Geographic &amp; Segment-Based Price Lists", flag:"native",
@@ -383,16 +392,54 @@
       caps:[
         ["Zone-based pricing (US / Puerto Rico / Hawaii)","native",
           "ODP's instant-savings pricing isn't always uniform nationwide &mdash; a promotion might need to look different in the continental US versus Puerto Rico or Hawaii, where cost structures and market conditions differ.",
-          "Handled as a Price Table promotion scoped per zone, with each region mapped to its own price table via store and sales-channel restrictions. Testing on officedepotdev confirmed this routing happens at the trade-policy level &mdash; the shopper's assigned trade policy determines which zone's price table they see, rather than a separate promotion being evaluated per region.",
-          {status:"open", note:"No dedicated zone-switch test in this batch, but the MAP Instant Savings test (P05, see Requirement #8) confirms the routing in practice: US/PR/Hawaii differences are handled by trade-policy assignment, not by separate promotion configs."}],
+          "In VTEX this is a Regular (or Price Table) promotion restricted to a sales channel / trade policy. The shopper's assigned trade policy is chosen upstream; the promotion does not infer geography on its own. The assessment account has no separate Puerto Rico or Hawaii trade policies, so G02 demonstrates the mechanic against sales channel 3 as a stand-in for a regional policy.",
+          {status:"tested", vtexName:"[Assessment] G02 Zone Direct Zone 74", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/28636805-dbc6-4e3e-8414-5c1d6cf607d8",
+           steps:[
+             "Set the checkout profile to <b>assessment.g02.zone@officedepot.example</b>.",
+             "Click <b>Add to Cart (sc=3)</b> to load SKU 3919316 on sales channel 3.",
+             "Expected result: 10% off, with the G02 promotion ID present in the cart.",
+             "Negative check: click <b>Add to Cart (sc=1)</b> with the same SKU and confirm G02 does not apply."
+           ],
+           cart:[
+             {label:"Add SKU 3919316 (sc=3)", url:cart([{id:3919316,qty:1}], {sc:3})},
+             {label:"Add SKU 3919316 (sc=1)", url:cart([{id:3919316,qty:1}], {sc:1})}
+           ]}],
         ["State, district &amp; store-level pricing","native",
-          "Beyond broad zones, ODP may eventually want pricing that varies even more narrowly &mdash; by state, by district, or down to an individual store, the way many national retailers tune price by local market conditions.",
-          "The same Price Table plus Trade Policy mechanism used for zone-level pricing extends naturally to state, district, or store-level granularity &mdash; it's the identical underlying capability, just mapped to a finer-grained set of trade policies. Only the zone-level use case has been scoped and validated for ODP so far.",
-          {status:"open", note:"Not isolated in this assessment batch &mdash; only zone-level pricing (US/PR/Hawaii) has been validated so far."}],
+          "Beyond broad zones, ODP may eventually want pricing that varies even more narrowly &mdash; by state, by district, or down to an individual franchise store, the way many national retailers tune price by local market conditions.",
+          "The store-level version is a Regular promotion with an inclusive seller condition. Franchise accounts in VTEX are sellers, so a rule scoped to <code>idSeller=odpdev0004</code> only discounts items sold by that franchise. It is the same mechanic as zone pricing, pointed at a seller instead of a sales channel.",
+          {status:"tested", statusLabel:"Configured in officedepotdev (inactive)", vtexName:"[Assessment] G03 Franchise Store Seller", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/a552f2f6-ec39-4200-9bee-ac62f6fcc280",
+           caution:"G03 is inactive on purpose. No active franchise SKU binding or usable offer was returned for the tested franchise sellers, so the rule is held back to avoid representing an untestable store promotion as live.",
+           steps:[
+             "When an offer exists for seller <b>odpdev0004</b>, set the checkout profile to <b>assessment.g03.store@officedepot.example</b>.",
+             "Add SKU 3919316 from seller odpdev0004 and confirm G03 applies (10% off).",
+             "Negative check: repeat with seller 1 and confirm G03 does not apply."
+           ],
+           cart:[
+             {label:"Add SKU 3919316 (seller 1)", url:cart([{id:3919316,qty:1}])},
+             {label:"Add SKU 3919316 (seller odpdev0004)", url:cart([{id:3919316,qty:1,seller:"odpdev0004"}])}
+           ]}],
         ["Member/segment price lists (Reward Member, Business Select)","native",
           "ODP runs multiple membership tiers &mdash; Rewards members and Business Select subscribers, for instance &mdash; each of whom should see a different, better price on eligible products without needing a coupon code.",
-          "Configured as Price Table promotions restricted by a cluster condition tied to the tier value stored on the shopper's profile (for example, tier contains rewardmember). The moment a shopper's profile carries the matching tier, VTEX automatically serves them that price table.",
-          {status:"open", note:"These are the same Price Table promotions covered under Loyalty &amp; Membership Pricing (Requirement #4) &mdash; see Member-Exclusive Pricing and Business Select Pricing there for the full, tested walkthrough."}],
+          "Configured as Price Table promotions restricted by a cluster condition on the shopper's profile. P02 keys off the reward-member audience. P03 is meant to key off <code>tier=businessselect</code>, but the CL entity is Master Data v1 and rejected a new <code>tier</code> field through the public schema API, so the live assessment uses a constrained fallback: the profile stores <code>customerClass=businessselect</code> and the promotion currently qualifies on <code>email=assessment.business@officedepot.example</code>. Follow-up: create a searchable CL text field named <code>tier</code> in Master Data Admin, publish and reindex CL, set <code>tier=businessselect</code> on the profile, then change P03 to <code>tier contains businessselect</code>.",
+          {status:"tested", cases:[
+            {title:"Test case 1 &mdash; Reward Member (P02)", vtexName:"[Assessment] P02 Reward Member Pricing", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/c46165e7-b5b7-48c5-b08b-2245b18e089f",
+             steps:[
+               "Open a cart session mapped to the assessment-rewardmember price table, using profile <b>assessment.reward@officedepot.example</b>.",
+               "Click <b>Add to Cart</b> to load SKU 3919316.",
+               "Expected result: the price should be US$49.99."
+             ],
+             cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]},
+            {title:"Test case 2 &mdash; Business Select fallback (P03)", vtexName:"[Assessment] P03 Business Select Pricing", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/83a83489-a69c-4cc8-bc0b-9f544144696a",
+             steps:[
+               "Open a cart session mapped to the <b>assessment-bizselect</b> price table, using profile <b>assessment.business@officedepot.example</b> (<code>customerClass=businessselect</code>).",
+               "Use the buttons below to load either 1 or 5 units of SKU 3919316.",
+               "Expected result: 1 unit should price at US$52.99; 5 units should price at US$49.99 each."
+             ],
+             cart:[
+               {label:"Add 1&times; SKU 3919316", url:cart([{id:3919316,qty:1}])},
+               {label:"Add 5&times; SKU 3919316", url:cart([{id:3919316,qty:5}])}
+             ]}
+          ]}],
         ["Campaign-code segment targeting","native",
           "Marketing frequently wants to track and reward shoppers who arrive through a specific campaign &mdash; an email blast, a paid ad, a partner link &mdash; by tying a price list or discount to that campaign's tracking code.",
           "Both Campaign and Regular promotions natively support a UTM Source/Campaign condition, so a price list or discount can be scoped to only apply when the shopper's session carries a matching campaign code.",
@@ -433,10 +480,10 @@
           "This is supported natively. A single promotion can have multiple unique customer-specific coupon codes, with each code configured for one-time use. VTEX validates the code when it is presented and prevents it from being redeemed again.",
           {status:"tested", vtexName:"[Assessment] Q06 Serialized Coupon", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/54bbf5b4-79f9-42d1-8110-24f54c111e04",
            steps:[
-             "Click <b>Add to Cart</b> to load SKU 3919316, using an identified (logged-in) customer profile.",
-             "Apply coupon code <b>assess-bday-0001</b>.",
-             "Expected result: 20% off the ink.",
-             "Negative check: try the same code again in a second cart &mdash; it should fail, since it's limited to one use."
+             "Click <b>Add to Cart</b> to load SKU 3919316 in a fresh cart, using an identified (logged-in) customer profile.",
+             "Apply one of the four stored single-use codes: <b>assess-bday-0001</b>, <b>assess-bday-0002</b>, <b>assess-bday-0003</b>, or <b>assess-bday-0004</b>. Each coupon has <code>maxUsage=1</code> and all four resolve to the same UTM source/campaign pair, <code>assess-bday-0001</code>.",
+             "Expected result: 20% off the ink, with Q06 present on the cart.",
+             "Negative check: reuse the same code in a second cart &mdash; it should fail. Try an invalid code and confirm Q06 does not apply."
            ],
            cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}],
         ["Auto-applied promotions","native",
@@ -510,10 +557,10 @@
              cart:[{label:"Add 11&times; SKU 580039", url:cart([{id:580039,qty:11}])}]},
             {title:"Test case 2 &mdash; One-time customer limit (Q06)", vtexName:"[Assessment] Q06 Serialized Coupon", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/54bbf5b4-79f9-42d1-8110-24f54c111e04",
              steps:[
-               "Click <b>Add to Cart</b> to load SKU 3919316, using an identified customer profile.",
-               "Apply coupon code <b>assess-bday-0001</b>.",
-               "Expected result: the ink should receive 20% off.",
-               "Negative check: try the same code again in a second cart and confirm it fails because maxUsage and maxUsagePerClient are both 1."
+               "Click <b>Add to Cart</b> to load SKU 3919316 in a fresh cart, using an identified customer profile.",
+               "Apply one unused code from the set <b>assess-bday-0001</b> through <b>assess-bday-0004</b>. All four map to UTM <code>assess-bday-0001</code> and each has <code>maxUsage=1</code>.",
+               "Expected result: the ink should receive 20% off and Q06 should appear.",
+               "Negative check: try the same code again in a second cart and confirm it fails. An invalid code should not qualify Q06."
              ],
              cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}
           ]}],
@@ -523,21 +570,40 @@
           {hide:true}]
       ]
     },
-    { n:4, title:"Loyalty &amp; Membership Pricing", flag:"custom",
+    { n:4, title:"Loyalty &amp; Membership Pricing", flag:"native",
       docs:[PUBLIC_DOCS.userPriceTables, PUBLIC_DOCS.priceTableBenefit],
       caps:[
-        ["Back in Rewards","custom",
-          "ODP's loyalty program rewards shoppers with points or dollars back on qualifying purchases &mdash; Back in Rewards credits money back to a shopper's loyalty balance based on what's in their cart.",
-          "TrueLoyal listens to VTEX's order events and calculates the reward entirely on its own platform &mdash; there's no promotion logic built inside VTEX for this; VTEX's job is limited to making sure the order data TrueLoyal needs is available.",
-          {status:"open", note:"Listed under &ldquo;Not in this VTEX batch&rdquo; &mdash; TrueLoyal only, so there's no VTEX promotion to test directly."}],
-        ["Bonus Rewards","custom",
-          "A companion mechanic to Back in Rewards &mdash; extra loyalty points or credit awarded on top of the standard earn rate, typically to incentivize a specific category or campaign.",
-          "Same TrueLoyal-owned model as Back in Rewards: VTEX passes qualifying order data, and TrueLoyal calculates and applies the bonus entirely outside VTEX's promotions engine.",
-          {status:"open", note:"Listed under &ldquo;Not in this VTEX batch&rdquo; &mdash; TrueLoyal only, so there's no VTEX promotion to test directly."}],
-        ["Rewards redemption (Buy X category/item/amount, get Y back)","custom",
-          "&ldquo;Buy this category, item, or spend this amount, get points back&rdquo; &mdash; a flexible loyalty mechanic that ties a reward back to specific purchase behavior.",
-          "Also owned entirely by TrueLoyal &mdash; VTEX's involvement is limited to sending the qualifying cart or order data the loyalty platform needs to calculate the reward.",
-          {status:"open", note:"Listed under &ldquo;Not in this VTEX batch&rdquo; &mdash; TrueLoyal only, so there's no VTEX promotion to test directly."}],
+        ["Back in Rewards","native",
+          "ODP's loyalty program rewards shoppers with points or dollars back on qualifying purchases &mdash; Back in Rewards credits money back to a shopper's loyalty balance based on what's in their cart. VTEX's native equivalent is a Regular promotion with a percentage reward value, not a cart discount.",
+          "G04 is configured with <code>percentualRewardValue=10</code> on SKU 3919316 and <code>orderStatusRewardValue=payment-approved</code>. Qualification is only the first step: actual issuance happens after payment approval, and redemption is a later Gift Card / store-credit payment flow. A persisted rule alone is not evidence that a Gift Card was issued. The fields persisted, but Checkout did not expose a stable qualifying native reward benefit, so the rule is held inactive pending account-level reward issuance support.",
+          {status:"tested", statusLabel:"Configured in officedepotdev (inactive)", vtexName:"[Assessment] G04 Back in Rewards Item", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/45e4e72b-325d-423c-a0c5-8cbaf3791d5f",
+           caution:"G04 is inactive. Do not activate it until native reward issuance is confirmed in this account. Isolated checkout already proved the inactive rule does not leak into ordinary carts.",
+           steps:[
+             "Review the Admin record: 10% item reward, issued when the order reaches payment-approved.",
+             "When issuance is supported, set the profile to <b>assessment.g04.reward@officedepot.example</b>, add SKU 3919316, place the order, and confirm the reward posts after payment approval.",
+             "Redemption is a later checkout payment using the issued credit &mdash; not a second promotion."
+           ],
+           cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}],
+        ["Bonus Rewards","native",
+          "A companion mechanic to Back in Rewards &mdash; extra loyalty credit awarded on top of the standard earn rate, typically to incentivize a specific category or campaign. Natively this is a Regular promotion with a fixed (nominal) reward value, scoped to a category.",
+          "G05 is configured with <code>nominalRewardValue=5</code> on the Office Supplies category <code>56201019</code>, issued at payment-approved. Configuration persisted, but qualification and issuance were not observable in Checkout, so the rule stays inactive. Same split as G04: the promotion qualifies; Gift Card issuance and later redemption are separate steps.",
+          {status:"tested", statusLabel:"Configured in officedepotdev (inactive)", vtexName:"[Assessment] G05 Bonus Rewards Category", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/1582ed31-97e6-4471-8c8a-838b6dc88c5d",
+           caution:"G05 is inactive. Configuration is only the qualification step; do not treat a persisted rule as proof that a Gift Card was issued.",
+           steps:[
+             "Review the Admin record: US$5 category bonus on Office Supplies, issued at payment-approved.",
+             "When issuance is supported, set the profile to <b>assessment.g05.reward@officedepot.example</b>, add a qualifying Office Supplies item, and confirm the US$5 credit after payment approval."
+           ],
+           cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}],
+        ["Rewards redemption (Buy X category/item/amount, get Y back)","native",
+          "&ldquo;Buy this category, item, or spend this amount, get value back&rdquo; &mdash; a flexible loyalty mechanic that ties a reward to specific purchase behavior. The assessment models the spend-amount variant natively: a Regular promotion with a nominal reward and a cart floor.",
+          "G06 is configured with a US$100 cart floor, <code>nominalRewardValue=10</code>, and issuance at payment-approved. Qualification persisted; issuance was not observable in Checkout, so the rule is inactive. Redeeming the credit later is the Gift Card payment flow, not a second promotions rule.",
+          {status:"tested", statusLabel:"Configured in officedepotdev (inactive)", vtexName:"[Assessment] G06 Rewards Spend Amount", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/b893fb3d-3df1-4739-be18-22e587a96729",
+           caution:"G06 is inactive. Isolated checkout already proved the inactive reward scenarios do not leak into ordinary carts.",
+           steps:[
+             "Review the Admin record: US$10 back on a cart of at least US$100, issued at payment-approved.",
+             "When issuance is supported, set the profile to <b>assessment.g06.reward@officedepot.example</b>, build a $100+ cart, place the order, and confirm the credit after payment approval."
+           ],
+           cart:[{label:"Add SKU 9999060 (clears $100)", url:cart([{id:9999060,qty:1}])}]}],
         ["Member-exclusive pricing (Reward Member)","native",
           "Rewards members should see a better price automatically, without needing a coupon &mdash; the moment they're recognized as a member, the member price should just be there.",
           "A Price Table promotion restricted by a cluster condition requiring the rewardmember tier on the shopper's profile. As soon as VTEX recognizes that tier, it serves the corresponding price table &mdash; no coupon, no manual step.",
@@ -550,7 +616,7 @@
            cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}],
         ["Business Select (BizSelect) discount tiers","native",
           "ODP's Business Select members expect deeper discounts as their purchase quantity increases &mdash; buying more units of the same item should unlock a better per-unit price, similar to a bulk-pricing structure. ODP flagged a specific gap here: applying a flat percentage discount on top of an item that already has tiered base pricing wasn't working once the shopper's quantity moved past the first tier.",
-          "Also a Price Table promotion restricted to the businessselect tier. Rather than layering a percentage discount on top of tiered base pricing &mdash; the combination that doesn't work &mdash; the validated approach configures multiple minimum-quantity fixed prices directly inside the same price table, so the price itself steps down as quantity increases. It reproduces the tiered-savings outcome the business wants, just through a different mechanism than originally assumed.",
+          "Also a Price Table promotion restricted to the businessselect audience. Rather than layering a percentage discount on top of tiered base pricing &mdash; the combination that doesn't work &mdash; the validated approach configures multiple minimum-quantity fixed prices directly inside the same <b>assessment-bizselect</b> price table, so the price itself steps down as quantity increases. The intended cluster is <code>tier=businessselect</code>. Because a new <code>tier</code> field could not be published on the Master Data v1 CL entity, P03 currently qualifies through the dedicated profile fallback (<code>email=assessment.business@officedepot.example</code>, with <code>customerClass=businessselect</code> stored on the profile). Follow-up: create the CL <code>tier</code> field, reindex, set <code>tier=businessselect</code>, and switch the cluster condition.",
           {status:"tested", vtexName:"[Assessment] P03 Business Select Pricing", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/83a83489-a69c-4cc8-bc0b-9f544144696a",
            steps:[
              "Open a cart session mapped to the assessment-bizselect price table, using profile assessment.business@officedepot.example.",
@@ -618,14 +684,41 @@
     { n:5, title:"BOPIS &amp; Location-Based Promotions", flag:"native",
       docs:[PUBLIC_DOCS.promotions, PUBLIC_DOCS.pricing],
       caps:[
-        ["BOPIS-specific promotions","custom",
-          "ODP may eventually want promotions that specifically reward or incentivize buy-online-pickup-in-store behavior &mdash; a discount that only applies, or applies differently, when a shopper chooses store pickup instead of shipping.",
-          "This use case hasn't been discussed with ODP yet, so no VTEX approach has been designed or built for it.",
-          {status:"open", note:"Listed under &ldquo;Not in this VTEX batch&rdquo; &mdash; not yet discussed with ODP, so there's nothing to test."}],
-        ["Location-based pricing to drive foot traffic","custom",
-          "Beyond BOPIS-specific discounts, ODP might want pricing that varies by a shopper's proximity to a physical store, as a way to draw foot traffic into locations.",
-          "No ODP-specific design exists yet. It would likely reuse the same Price Table and zone/store scoping already validated for Instant Savings and Reward pricing, but the actual trigger &mdash; how a promotion would detect and respond to a shopper's proximity to a store &mdash; hasn't been defined.",
-          {status:"open", note:"No assessment promotion exists for this yet &mdash; still open, same as BOPIS-specific promotions above."}]
+        ["BOPIS-specific promotions","native",
+          "ODP can reward buy-online-pickup-in-store behavior with a discount that only applies, or applies differently, when a shopper chooses store pickup instead of shipping. Pickup point <code>Pickup Test 2</code> and pickup policy <code>1bb5b73</code> (Main dock 1) are active in the assessment account, so the SLA is available on a qualifying ZIP.",
+          "Two native Regular promotions, both gated by the selected SLA rather than by seller or ZIP: G07 is a 10% item discount on SKU 3919316; G08 is a US$5 cart discount once the basket is at least US$50. Neither fires if delivery stays selected.",
+          {status:"tested", cases:[
+            {title:"Test case 1 &mdash; BOPIS item discount (G07)", vtexName:"[Assessment] G07 BOPIS Item Incentive", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/28c1487a-6da2-41a8-bd2b-5d5274f08ddc",
+             steps:[
+               "Set the checkout profile to <b>assessment.g07.bopis@officedepot.example</b>.",
+               "Click <b>Add to Cart</b> to load SKU 3919316.",
+               "Attach a US shipping address with ZIP <b>10017</b> and select the pickup-in-point SLA.",
+               "Expected result: 10% off the item, with the G07 promotion ID present.",
+               "Negative check: leave delivery selected and confirm G07 does not apply."
+             ],
+             cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]},
+            {title:"Test case 2 &mdash; BOPIS cart incentive (G08)", vtexName:"[Assessment] G08 BOPIS Cart Incentive", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/fe0f5fd9-15e2-4ff6-af99-3f6c7d6e7c75",
+             steps:[
+               "Set the checkout profile to <b>assessment.g08.bopis@officedepot.example</b>.",
+               "Build a cart of at least US$50 (SKU 3919316 is enough if the list price clears the floor; add another item if it does not).",
+               "Attach ZIP <b>10017</b> and select the Pickup SLA.",
+               "Expected result: US$5 off the cart, with the G08 promotion ID present.",
+               "Negative check: repeat with delivery selected, or with a sub-$50 cart, and confirm G08 does not apply."
+             ],
+             cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}
+          ]}],
+        ["Location-based pricing to drive foot traffic","native",
+          "Beyond BOPIS-specific discounts, ODP can vary pricing by a shopper's location &mdash; for example a ZIP around a specific store &mdash; as a way to draw foot traffic into that location.",
+          "A native Regular promotion with an inclusive ZIP range. G09 applies 15% off SKU 172791 when the attached address is USA ZIP <code>10017</code>&ndash;<code>10017</code>. The promotion keys off the shipping address, not the sales channel, which is what makes it useful for store-catchment campaigns.",
+          {status:"tested", vtexName:"[Assessment] G09 Location ZIP 10017", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/310c5fc0-61c4-459b-9d5b-5b2c00b916d2",
+           steps:[
+             "Set the checkout profile to <b>assessment.g09.zip@officedepot.example</b>.",
+             "Click <b>Add to Cart</b> to load SKU 172791.",
+             "Attach a US address with ZIP <b>10017</b>.",
+             "Expected result: 15% off, with the G09 promotion ID present.",
+             "Negative check: repeat with ZIP <b>33101</b> and confirm G09 does not apply."
+           ],
+           cart:[{label:"Add SKU 172791", url:cart([{id:172791,qty:1}])}]}]
       ]
     },
     { n:6, title:"Specialty &amp; Program-Specific Discounts", flag:"native",
@@ -662,15 +755,17 @@
              "Expected result: 10% off."
            ],
            cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}],
-        ["Subscription incentives","custom",
+        ["Subscription incentives","native",
           "ODP wants to reward shoppers who set up a recurring, auto-delivery order &mdash; ink, toner, or cleaning supplies on a subscription &mdash; with a modest ongoing discount as an incentive to subscribe rather than buy one-off.",
-          "Designed as a Regular promotion using a Subscription-order condition, so only carts flagged as a subscription order would receive the discount. Testing surfaced a real limitation: the public API used to create the promotion doesn't currently persist that subscription-order field, meaning it can't be safely activated as-is &mdash; turned on today, it would discount any matching cart, subscription or not. It's intentionally left inactive until the condition is set correctly in Admin.",
+          "A Regular 5% SKU discount with no coupon. Qualification is the combination of monthly <code>subscriptionData</code> plus the marketing tag <code>vtex-subscriptions</code>. That tag is the reliable Checkout signal; an ordinary cart without it must not receive R08. The promotion is active and checkout-qualified when the tag is attached. A full order-placement attempt was blocked by Checkout error CHK0082 (reCAPTCHA required) before an order, payment, or subscription ID could be created.",
           {status:"tested", vtexName:"[Assessment] R08 Subscription Ink 5 Percent", adminUrl:"https://officedepotdev.myvtex.com/admin/promotions/a4edda4a-615d-40eb-866a-c51dcbcfcd83",
-           caution:"This promotion is currently inactive. Do not test it until it has been reactivated in Admin with Is a subscription order set correctly &mdash; as configured today, activating it would discount any matching cart, subscription or not.",
+           caution:"Cart qualification is proven. Completing a live subscription order still requires a manual Checkout pass: complete reCAPTCHA, place the order, submit one Worldpay sandbox Mastercard attempt, process the gateway callback, then verify the order and subscription in OMS and Subscriptions.",
            steps:[
-             "Once reactivated: click <b>Add to Cart</b> to load SKU 3919316 (or 9999379) into a subscription/auto-delivery cart.",
-             "Confirm the cart is flagged as a subscription order.",
-             "Expected result: a 5% discount should apply only to the subscription cart &mdash; a normal, one-time cart with the same item should not receive it."
+             "Set the checkout profile to <b>assessment.subscription@officedepot.example</b>.",
+             "Click <b>Add to Cart</b> to load SKU 3919316 (or 9999379).",
+             "Attach monthly subscription data, then set <code>marketingTags=[\"vtex-subscriptions\"]</code>.",
+             "Expected result: 5% off, with the R08 promotion ID present.",
+             "Negative check: the same SKU in an ordinary cart without the tag must not receive R08."
            ],
            cart:[{label:"Add SKU 3919316", url:cart([{id:3919316,qty:1}])}]}],
         ["Teacher &amp; Military discounts (ID.me)","custom",
@@ -811,7 +906,9 @@
     "% off / $ off (Instant Savings)":[PUBLIC_DOCS.pricing, PUBLIC_DOCS.priceTableBenefit],
     "Best price logic":[PUBLIC_DOCS.competition],
     "Bundle discounts (single basket &amp; group)":[PUBLIC_DOCS.buyTogether],
-    "Member/segment price lists (Reward Member, Business Select)":[PUBLIC_DOCS.userPriceTables],
+    "Zone-based pricing (US / Puerto Rico / Hawaii)":[PUBLIC_DOCS.regular, PUBLIC_DOCS.pricing],
+    "State, district &amp; store-level pricing":[PUBLIC_DOCS.regular],
+    "Member/segment price lists (Reward Member, Business Select)":[PUBLIC_DOCS.userPriceTables, PUBLIC_DOCS.customerCluster],
     "Campaign-code segment targeting":[PUBLIC_DOCS.campaign, PUBLIC_DOCS.campaignAudience],
     "Auto-applied promotions":[PUBLIC_DOCS.promotions],
     "Manually applied codes":[PUBLIC_DOCS.coupons, PUBLIC_DOCS.regular],
@@ -824,6 +921,9 @@
     "Guest / POS checkout redemption":[PUBLIC_DOCS.coupons],
     "Member-exclusive pricing (Reward Member)":[PUBLIC_DOCS.userPriceTables],
     "Business Select (BizSelect) discount tiers":[PUBLIC_DOCS.pricing, PUBLIC_DOCS.userPriceTables],
+    "Back in Rewards":[PUBLIC_DOCS.reward, PUBLIC_DOCS.giftCard],
+    "Bonus Rewards":[PUBLIC_DOCS.reward, PUBLIC_DOCS.giftCard],
+    "Rewards redemption (Buy X category/item/amount, get Y back)":[PUBLIC_DOCS.reward, PUBLIC_DOCS.giftCard],
     "BLP / offer stacking logic":[PUBLIC_DOCS.competition, PUBLIC_DOCS.promotions],
     "Service Depot Dollars (BizSelect year-1 offer)":[PUBLIC_DOCS.regular, PUBLIC_DOCS.customerCluster, PUBLIC_DOCS.coupons],
     "Teacher &amp; Military discounts (ID.me)":[PUBLIC_DOCS.customerCluster, PUBLIC_DOCS.employeeBenefits],
@@ -833,6 +933,8 @@
     "Employee &mdash; Supplies 20%":[PUBLIC_DOCS.employeeBenefits, PUBLIC_DOCS.customerCluster],
     "Employee &mdash; Technology 10%":[PUBLIC_DOCS.employeeBenefits, PUBLIC_DOCS.customerCluster],
     "Subscription incentives":[PUBLIC_DOCS.subscription],
+    "BOPIS-specific promotions":[PUBLIC_DOCS.regular],
+    "Location-based pricing to drive foot traffic":[PUBLIC_DOCS.regular],
     "Free shipping":[PUBLIC_DOCS.shipping],
     "Shipping % off":[PUBLIC_DOCS.shipping],
     "Shipping $ off":[PUBLIC_DOCS.shipping],
